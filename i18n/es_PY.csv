@@ -1,0 +1,81 @@
+Save,Guardar Waypoint
+Delete,Borrar Waypoint
+"Add Row Data","Agregar nuevo Waypoint "
+Enabled,Habilitado
+Name,Nombre
+Address,Dirección
+Telephone,Teléfono
+Region,Provincia
+City,Ciudad
+Postcode,Código Postal
+"Lunes - Horario de apertura","Lunes - Horario de apertura"
+"Lunes - Horario de cierre","Lunes - Horario de cierre"
+"Martes - Horario de apertura","Martes - Horario de apertura"
+"Martes - Horario de cierre","Martes - Horario de cierre"
+"Miércoles - Horario de apertura","Miércoles - Horario de apertura"
+"Miércoles - Horario de cierre","Miércoles - Horario de cierre"
+"Jueves - Horario de apertura","Jueves - Horario de apertura"
+"Jueves - Horario de cierre","Jueves - Horario de cierre"
+"Viernes - Horario de apertura","Viernes - Horario de apertura"
+"Viernes - Horario de cierre","Viernes - Horario de cierre"
+"Sábado - Horario de apertura","Sábado - Horario de apertura"
+"Sábado - Horario de cierre","Sábado - Horario de cierre"
+"Domingo - Horario de apertura","Domingo - Horario de apertura"
+"Domingo - Horario de cierre","Domingo - Horario de cierre"
+"Latitude (Google Maps coordinate)","Latitud (coordenada de Google Maps)"
+"Longitude (Google Maps coordinate)","Longitud (coordenada de Google Maps)"
+"Pedidos Ya: Cancellation of shipment %1","Pedidos Ya: Anulación del envío %1"
+"Shipment Pedidos Ya was canceled","Se canceló el envío Pedidos Ya"
+"No Pedidos Ya shipment was canceled. Error: %1","No se canceló ningún envío Pedidos Ya. Error: %1"
+"No Pedidos Ya shipment was canceled.","No se canceló ningún envío Pedidos Ya."
+"No Pedidos Ya shipment was canceled. Only shipments with CONFIRMED status can be canceled.","No se canceló ningún envío Pedidos Ya. Solo envíos con status CONFIRMED pueden ser cancelados."
+"There was a problem canceling the shipment.","Se produjo un problema cancelando el envío."
+"The status of the order does not allow to generate the shipment Pedidos Ya.","El status de la orden no permite generar el envío Pedidos Ya."
+"Pedidos Ya shipment generated.","Envío Pedidos Ya generado"
+"An error occurred trying to generate the shipment Pedidos Ya. WS error response.","Se produjo un error intentando generar el envío Pedidos Ya. Respuesta con error del WS."
+"An error occurred trying to generate the shipment Pedidos Ya.","Se produjo un error intentando generar el envío Pedidos Ya."
+"New Waypoint","Nuevo Waypoint"
+"Waypoint %1 was deleted.","El Waypoint %1 fue eliminado."
+"Row data no longer exist.","Los datos  de la fila ya no existen."
+"Edit Waypoint ","Editar Waypoint "
+"Create Waypoint","Crear Waypoint"
+Waypoints,Waypoints
+"Maximum weight exceeded","Peso máximo superado"
+Error,Error
+"There are no shipping estimate for the address entered","No existen cotizaciones para la dirección ingresada"
+"Error WS","Error WS"
+Testing,Testing
+Production,Production
+"No available","No disponible"
+"An error occurred trying to generate the shipment Pedidos Ya: ","Se produjo un error intentando generar el envío Pedidos Ya: "
+"Cancel Rider","Cancelar Rider"
+"Re Request Rider","Volver a solicitar Rider"
+"Request Rider","Solicitar Rider"
+"Edit Waypoint","Editar Waypoint"
+"Order Information","Información de la orden"
+"Shipping Address","Dirección de envío"
+"Shipping Method","Método de envío"
+"No shipping information available","Información de envío no disponible"
+"Pedidos Ya Status","Estado Envio Pedidos Ya"
+"Billing Address","Dirección de facturación"
+"Payment Method","Método de pago"
+"Pedidos Ya","Pedidos Ya"
+Configuration,Configuración
+"Shipping Methods","Métodos de envío"
+"Pedidos Ya Configuration","Configuración Pedidos Ya"
+"Client ID","Client ID"
+"Secret key","Secret key"
+Username,Username
+Password,Password
+"Pedidos Ya","Pedidos Ya"
+Title,Título
+Description,Descripción
+"Show Method if Not Applicable","Mostrar método si no está disponible"
+"Maximum Package Weight","Peso máximo por paquete"
+"Assume shipping mount","Monto del envío a asumir"
+Mode,Modo
+Category,Categoría
+"Volume attribute code","Código del atributo volumen"
+"Preparation time","Tiempo de preparación"
+"Status for automatic Pedidos Ya shipping creation","Estados para creación automática de envíos Pedidos Ya"
+"Entity ID","Entity ID"
