@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <carriers>
+            <pedidosya>
+                <active>0</active>
+                <title>Pedidos Ya</title>
+                <description>Pedidos Ya</description>
+                <model>Improntus\PedidosYa\Model\Carrier\PedidosYa</model>
+                <max_package_weight>100</max_package_weight>
+                <mode>testing</mode>
+            </pedidosya>
+        </carriers>
+    </default>
+</config>

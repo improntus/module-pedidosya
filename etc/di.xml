@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Backend\Block\Widget\Context">
+        <plugin name="improntus_pedidosya_button_label" type="Improntus\PedidosYa\Plugin\Widget\Context" sortOrder="100"/>
+    </type>
+    <preference for="Magento\Sales\Block\Order\Info" type="Improntus\PedidosYa\Block\Order\Info" />
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="pedidosya_waypoint_listing_data_source" xsi:type="string">WaypointCollection</item>
+            </argument>
+        </arguments>
+    </type>
+    <virtualType name="WaypointCollection" type="Improntus\PedidosYa\Ui\DataProvider\Waypoint\Listing\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">improntus_pedidosya_waypoint</argument>
+            <argument name="resourceModel" xsi:type="string">Improntus\PedidosYa\Model\ResourceModel\Waypoint</argument>
+        </arguments>
+    </virtualType>
+</config>
