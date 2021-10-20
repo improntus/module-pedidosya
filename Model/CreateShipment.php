@@ -162,6 +162,7 @@ class CreateShipment
 
                                     $pedidosYa->setStatus('pedidosya_sent');
                                     $pedidosYa->save();
+                                    $order->save();
                                     $this->_pedidosYaHelper->createShipment($order, $pedidosYa);
                                     return $this->_pedidosYaHelper::PEDIDOSYA_OK;
                                 } else {
