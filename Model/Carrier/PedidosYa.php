@@ -277,11 +277,9 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             $result->append($error);
         }
 
-        if($request->getFreeShipping() === true) {
-            $method->setPrice(0);
-            $method->setCost(0);
-            $result->append($method);
-        } elseif($request->getDestStreet() && $request->getDestPostcode()) {
+        $isFreeShipping = $request->getFreeShipping();
+
+        if($request->getDestStreet() && $request->getDestPostcode()) {
             $waypointData['waypoints'][] = [
                 'addressStreet' => trim(preg_replace('/\n/', ' ', $request->getDestStreet())),
                 'city'          => $request->getDestCity()
@@ -289,7 +287,11 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
 
             $waypointCoverage = $this->_webservice->getEstimateCoverage($waypointData);
 
-            if($waypointCoverage == false) {
+            if($isFreeShipping == 1) {
+                $method->setPrice(0);
+                $method->setCost(0);
+                $result->append($method);
+            } elseif($waypointCoverage == false) {
                 $error = $this->_rateErrorFactory->create();
                 $error->setCarrier($this->_code);
                 $error->setCarrierTitle($this->getConfigData('title'));
@@ -344,7 +346,10 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
 
             $shippingPrice = $webservice->getEstimatePrice($estimatePriceData);
 
-            if(isset($shippingPrice->price)) {
+            if($isFreeShipping == 1) {
+                $this->_checkoutSession->setPedidosyaEstimatedata(json_encode($estimatePriceData));
+                $this->_checkoutSession->setPedidosyaSourceWaypoint($closestSourceWaypoint->getEntityId());
+            } elseif(isset($shippingPrice->price)) {
                 $price = $shippingPrice->price->total;
                 $assumeShippingPrice = $this->_helper->getAssumeShippingAmount();
                 $total = $price - $assumeShippingPrice;
