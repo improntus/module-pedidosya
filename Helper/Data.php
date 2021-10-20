@@ -30,6 +30,7 @@ class Data extends AbstractHelper
     const STATUS_NOT_ALLOWED    = 'not_allowed';
     const PEDIDOSYA_OK          = 'pedidosya_ok';
     const PEDIDOSYA_ERROR_WS    = 'pedidosya_error_ws';
+    const PEDIDOSYA_ERROR_DATA  = 'pedidosya_error_data';
 
     /**
      * @var ScopeConfigInterface

@@ -93,6 +93,8 @@ class Create extends Action
                     $this->messageManager->addSuccessMessage(__('Pedidos Ya shipment generated.'));
                 } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS) {
                     $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. WS error response.'));
+                } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_DATA) {
+                    $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. EstimateData field is missing.'));
                 }
             } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya.') . $e->getMessage());

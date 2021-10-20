@@ -293,9 +293,18 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 $error = $this->_rateErrorFactory->create();
                 $error->setCarrier($this->_code);
                 $error->setCarrierTitle($this->getConfigData('title'));
-                $error->setErrorMessage(__('Error'));
+                $error->setErrorMessage(__('There are no shipping estimate for the address entered'));
                 $result->append($error);
                 return $result;
+            } else if(isset($waypointCoverage->waypoints[0])) {
+                if($waypointCoverage->waypoints[0]->status == 'NOT_FOUND') {
+                    $error = $this->_rateErrorFactory->create();
+                    $error->setCarrier($this->_code);
+                    $error->setCarrierTitle($this->getConfigData('title'));
+                    $error->setErrorMessage(__('There are no shipping estimate for the address entered'));
+                $result->append($error);
+                return $result;
+                }
             }
 
             $closestSourceWaypoint = $this->_helper->getClosestSourceWaypoint($waypointCoverage);
@@ -335,12 +344,8 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
 
             $shippingPrice = $webservice->getEstimatePrice($estimatePriceData);
 
-            if(isset($shippingPrice->price))
-                $price = $shippingPrice->price->total ?? 0;
-            else
-                $price = 0;
-
-            if($price) {
+            if(isset($shippingPrice->price)) {
+                $price = $shippingPrice->price->total;
                 $assumeShippingPrice = $this->_helper->getAssumeShippingAmount();
                 $total = $price - $assumeShippingPrice;
                 if($total > 0) {

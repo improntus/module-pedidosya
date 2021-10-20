@@ -33,6 +33,7 @@ Postcode,Código Postal
 "The status of the order does not allow to generate the shipment Pedidos Ya.","El status de la orden no permite generar el envío Pedidos Ya."
 "Pedidos Ya shipment generated.","Envío Pedidos Ya generado"
 "An error occurred trying to generate the shipment Pedidos Ya. WS error response.","Se produjo un error intentando generar el envío Pedidos Ya. Respuesta con error del WS."
+"An error occurred trying to generate the shipment Pedidos Ya. EstimateData field is missing.","Se produjo un error intentando generar el envío Pedidos Ya. Falta el campo EstimateData."
 "An error occurred trying to generate the shipment Pedidos Ya.","Se produjo un error intentando generar el envío Pedidos Ya."
 "New Waypoint","Nuevo Waypoint"
 "Waypoint %1 was deleted.","El Waypoint %1 fue eliminado."

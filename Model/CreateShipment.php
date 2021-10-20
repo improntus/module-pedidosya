@@ -167,6 +167,8 @@ class CreateShipment
                                     return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS;
                                 }
                             }
+                        } else {
+                            return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_DATA;
                         }
                     }
                 } else {
