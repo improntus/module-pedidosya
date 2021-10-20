@@ -121,7 +121,9 @@ class CreateShipment
                     ->addFieldToFilter('order_id', ['eq' => $order->getId()])
                     ->getFirstItem();
 
-                if(in_array($orderStatus, $statuses) || $pedidosYa->getStatus() == 'pedidosya_cancelled') {
+                $alreadySent = $pedidosYa->getStatus() == 'pedidosya_sent';
+
+                if(in_array($orderStatus, $statuses) && !$alreadySent || $pedidosYa->getStatus() == 'pedidosya_cancelled') {
                     if(!in_array($pedidosYa->getPedidosyaStatus(), $notAllowedPedidosYaStatus) || $pedidosYa->getPedidosyaStatus() == 'pedidosya_cancelled') {
                         $pedidosYa->setOrderId($order->getId());
                         $pedidosYa->setIncrementId($order->getIncrementId());
@@ -171,7 +173,7 @@ class CreateShipment
                             return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_DATA;
                         }
                     }
-                } else {
+                } elseif(!$alreadySent) {
                     return $this->_pedidosYaHelper::STATUS_NOT_ALLOWED;
                 }
             }
