@@ -147,7 +147,7 @@ class Cancel extends Action
                     }
                 }
             } catch (\Exception $e) {
-                $this->_pedidosYaHelper->log($e->getMessage(), true);
+                $this->_pedidosYaHelper->log($e->getMessage());
                 $this->messageManager->addErrorMessage(__('There was a problem canceling the shipment.') . $e->getMessage());
             }
         }

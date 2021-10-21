@@ -80,7 +80,7 @@ class Webservice
 
             if(curl_error($curl)) {
                 $error = 'An error occurred while generating the token: '. curl_error($curl);
-                $this->_helper->log($error ,true);
+                $this->_helper->log($error);
                 return false;
             }
 
@@ -126,9 +126,9 @@ class Webservice
 
         if($httpcode != 200) {
             $response = json_decode($response);
-            $this->_helper->log('Error:', true);
+            $this->_helper->log('Error:');
             if(isset($response->message))
-                $this->_helper->log($response->message, true);
+                $this->_helper->log($response->message);
         }
 
         if(isset($responseObject->price->total)) {
@@ -163,14 +163,14 @@ class Webservice
         if(curl_error($curl))
         {
             $error = 'There was an error requesting a estimate price: '. curl_error($curl);
-            $this->_helper->log('Error:', true);
-            $this->_helper->log($error, true);
+            $this->_helper->log('Error:');
+            $this->_helper->log($error);
 
             return false;
         } elseif($httpcode != 200) {
             $response = json_decode($response);
-            $this->_helper->log('Error:', true);
-            $this->_helper->log($response->messages[0], true);
+            $this->_helper->log('Error:');
+            $this->_helper->log($response->messages[0]);
             return false;
         }
 
@@ -205,11 +205,11 @@ class Webservice
 
         if($httpcode != 200) {
             if($httpcode == 400) {
-                $this->_helper->log("Error: " .$responseObject->message, true);
+                $this->_helper->log("Error: " .$responseObject->message);
                 return false;
             }
             $error = 'There was an error in createShipping method: '. curl_error($curl);
-            $this->_helper->log("Error: " .$error, true);
+            $this->_helper->log("Error: " .$error);
             return false;
         }
 
@@ -248,8 +248,8 @@ class Webservice
         if(curl_error($curl))
         {
             $error = 'There was an error in confirmShipping method: '. curl_error($curl);
-            $this->_helper->log('Error:', true);
-            $this->_helper->log($error, true);
+            $this->_helper->log('Error:');
+            $this->_helper->log($error);
 
             return false;
         }
@@ -290,7 +290,7 @@ class Webservice
 
         if(curl_error($curl)) {
             $error = 'There was an error in getEstimateCoverage method: '. curl_error($curl);
-            $this->_helper->log($error ,true);
+            $this->_helper->log($error );
 
             return false;
         }
@@ -326,9 +326,9 @@ class Webservice
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
         if($httpcode != 200) {
-            $this->_helper->log('Error:', true);
+            $this->_helper->log('Error:');
             if(isset($responseObject->message)) {
-                $this->_helper->log($responseObject->message, true);
+                $this->_helper->log($responseObject->message);
                 return $responseObject;
             }
             return false;
@@ -368,9 +368,9 @@ class Webservice
 
         if($httpcode != 200) {
             $response = json_decode($response);
-            $this->_helper->log('Error:', true);
+            $this->_helper->log('Error:');
             if(isset($response->messages))
-                $this->_helper->log($response->messages[0], true);
+                $this->_helper->log($response->messages[0]);
             return false;
         }
 

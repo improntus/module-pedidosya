@@ -107,7 +107,7 @@ class CreateShipment
                     $order = $this->_orderRepository->get($orderId);
                 } catch (\Exception $e) {
                     $this->_messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya: ') . $e->getMessage());
-                    $this->_pedidosYaHelper->log($e->getMessage(), true);
+                    $this->_pedidosYaHelper->log($e->getMessage());
                 }
             }
 

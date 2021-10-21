@@ -16,10 +16,9 @@ use Magento\Shipping\Model\Tracking\Result;
 use Magento\Shipping\Model\Tracking\Result\StatusFactory;
 use Magento\Shipping\Model\Tracking\ResultFactory;
 use Magento\Store\Model\ScopeInterface;
-use Zend\Log\Logger;
-use Zend\Log\Writer\Stream;
 use Improntus\PedidosYa\Model\TokenFactory;
 use Improntus\PedidosYa\Model\PedidosYaFactory;
+use Improntus\PedidosYa\Helper\Logger\Logger as PedidosYaLogger;
 
 /**
  * Class Data
@@ -77,6 +76,11 @@ class Data extends AbstractHelper
     protected $_trackResultFactory;
 
     /**
+     * @var PedidosYaLogger
+     */
+    protected $_pedidosYaLogger;
+
+    /**
      * @param Context $context
      * @param ScopeConfigInterface $scopeConfig
      * @param TokenFactory $tokenFactory
@@ -87,6 +91,7 @@ class Data extends AbstractHelper
      * @param StatusFactory $trackStatusFactory
      * @param ResultFactory $trackResultFactory
      * @param PedidosYaFactory $pedidosYaFactory
+     * @param PedidosYaLogger $pedidosYaLogger
      */
     public function __construct(
         Context $context,
@@ -98,7 +103,8 @@ class Data extends AbstractHelper
         Order $convertOrder,
         StatusFactory $trackStatusFactory,
         ResultFactory $trackResultFactory,
-        PedidosYaFactory $pedidosYaFactory
+        PedidosYaFactory $pedidosYaFactory,
+        PedidosYaLogger $pedidosYaLogger
     ) {
         $this->_scopeConfig         = $scopeConfig;
         $this->_tokenFactory        = $tokenFactory;
@@ -109,6 +115,7 @@ class Data extends AbstractHelper
         $this->_convertOrder        = $convertOrder;
         $this->_trackStatusFactory  = $trackStatusFactory;
         $this->_trackResultFactory  = $trackResultFactory;
+        $this->_pedidosYaLogger     = $pedidosYaLogger;
         parent::__construct($context);
     }
 
@@ -409,27 +416,11 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $mensaje
-     * @param false $isError
-     * @param false $isArray
+     * @param $message
      */
-    public function log($mensaje, $isError = false, $isArray = false)
+    public function log($message)
     {
-        if($isError){
-            $file = 'error_pedidosya_'.date('m_Y').'.log';
-        }else{
-            $file = 'pedidosya'.date('m_Y').'.log';
-        }
-
-        $writer = new Stream(BP . '/var/log/'.$file);
-        $logger = new Logger();
-        $logger->addWriter($writer);
-
-        if($isArray){
-            $logger->info(print_r($mensaje, true));
-        }else{
-            $logger->info($mensaje);
-        }
+        $this->_pedidosYaLogger->error($message);
     }
 }
 

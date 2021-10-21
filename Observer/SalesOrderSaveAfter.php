@@ -45,7 +45,7 @@ class SalesOrderSaveAfter implements ObserverInterface
             if($this->_createShipment->create(NULL, $order))
             return $this;
         } catch (\Exception $e) {
-            $this->_helper->log($e->getMessage(), true);
+            $this->_helper->log($e->getMessage());
         }
     }
 }

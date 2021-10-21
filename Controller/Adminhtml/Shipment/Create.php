@@ -98,7 +98,7 @@ class Create extends Action
                 }
             } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya.') . $e->getMessage());
-                $this->_pedidosYaHelper->log($e->getMessage(), true);
+                $this->_pedidosYaHelper->log($e->getMessage());
             }
         }
 
