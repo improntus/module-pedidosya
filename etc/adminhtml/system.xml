@@ -48,6 +48,10 @@
                     <label>Maximum Package Weight</label>
                     <comment>Please consult your shipping carrier for maximum supported shipping weight</comment>
                 </field>
+                <field id="automatic_shipment" translate="label" type="select" sortOrder="145" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automatic Shipment Generation</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="assume_shipping_amount" translate="label" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Assume shipping amount</label>
                     <comment>Shipping amount to be assumed by the company</comment>
@@ -71,7 +75,6 @@
                 </field>
                 <field id="status_allowed" translate="label" type="multiselect" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Status for automatic Pedidos Ya shipping creation</label>
-                    <validate>required-entry</validate>
                     <source_model>Improntus\PedidosYa\Model\Config\Source\StatusOrderOption</source_model>
                     <comment>When order change to one of this selected status, shipment will be generated automatically</comment>
                 </field>

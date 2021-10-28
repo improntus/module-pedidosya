@@ -74,6 +74,7 @@ Title,Título
 Description,Descripción
 "Show Method if Not Applicable","Mostrar método si no está disponible"
 "Maximum Package Weight","Peso máximo por paquete"
+"Automatic Shipment Generation","Generación automática de envíos"
 "Assume shipping mount","Monto del envío a asumir"
 Mode,Modo
 Category,Categoría

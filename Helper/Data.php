@@ -162,7 +162,7 @@ class Data extends AbstractHelper
 
 
     /**
-     * @return string
+     * @return bool
      */
     public function isActive()
     {
@@ -170,7 +170,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @return string
+     * @return int
      */
     public function getAssumeShippingAmount()
     {
@@ -183,6 +183,14 @@ class Data extends AbstractHelper
     public function getMaxWeight()
     {
         return (float)$this->_scopeConfig->getValue("carriers/pedidosya/max_package_weight", ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getAutomaticShipment()
+    {
+        return (bool)$this->_scopeConfig->getValue("carriers/pedidosya/automatic_shipment", ScopeInterface::SCOPE_STORE);
     }
 
     /**
@@ -202,7 +210,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @return string
+     * @return int
      */
     public function getPreparationTime()
     {
