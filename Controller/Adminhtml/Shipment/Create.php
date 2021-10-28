@@ -87,7 +87,7 @@ class Create extends Action
         if($orderId = $this->getRequest()->getParam('order_id')) {
             try {
                 $response = $this->_createShipment->create($orderId);
-                if($response == $this->_pedidosYaHelper::STATUS_NOT_ALLOWED) {
+                if($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_STATUS) {
                     $this->messageManager->addErrorMessage(__('The status of the order does not allow to generate the shipment Pedidos Ya.'));
                 } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_OK) {
                     $this->messageManager->addSuccessMessage(__('Pedidos Ya shipment generated.'));
@@ -95,6 +95,8 @@ class Create extends Action
                     $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. WS error response.'));
                 } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_DATA) {
                     $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. EstimateData field is missing.'));
+                } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_TIME) {
+                    $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. Waypoint is not in working hours.'));
                 }
             } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya.') . $e->getMessage());

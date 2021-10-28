@@ -169,13 +169,15 @@ class CreateShipment
                                     $order->addStatusHistoryComment("Pedidos Ya: Preorder ERROR.");
                                     return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS;
                                 }
+                            } else {
+                                return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_TIME;
                             }
                         } else {
                             return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_DATA;
                         }
                     }
                 } elseif(!$alreadySent) {
-                    return $this->_pedidosYaHelper::STATUS_NOT_ALLOWED;
+                    return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_STATUS;
                 }
             }
         }

@@ -35,6 +35,7 @@ Postcode,Código Postal
 "An error occurred trying to generate the shipment Pedidos Ya. WS error response.","Se produjo un error intentando generar el envío Pedidos Ya. Respuesta con error del WS."
 "An error occurred trying to generate the shipment Pedidos Ya. EstimateData field is missing.","Se produjo un error intentando generar el envío Pedidos Ya. Falta el campo EstimateData."
 "An error occurred trying to generate the shipment Pedidos Ya.","Se produjo un error intentando generar el envío Pedidos Ya."
+"An error occurred trying to generate the shipment Pedidos Ya. Waypoint is not in working hours.","Se produjo un error intentando generar el envío Pedidos Ya. El Waypoint está fuera de su horario laboral."
 "New Waypoint","Nuevo Waypoint"
 "Waypoint %1 was deleted.","El Waypoint %1 fue eliminado."
 "Row data no longer exist.","Los datos  de la fila ya no existen."

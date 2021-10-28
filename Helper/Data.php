@@ -26,10 +26,11 @@ use Improntus\PedidosYa\Helper\Logger\Logger as PedidosYaLogger;
  */
 class Data extends AbstractHelper
 {
-    const STATUS_NOT_ALLOWED    = 'not_allowed';
-    const PEDIDOSYA_OK          = 'pedidosya_ok';
-    const PEDIDOSYA_ERROR_WS    = 'pedidosya_error_ws';
-    const PEDIDOSYA_ERROR_DATA  = 'pedidosya_error_data';
+    const PEDIDOSYA_OK              = 'pedidosya_ok';
+    const PEDIDOSYA_ERROR_STATUS    = 'not_allowed_status';
+    const PEDIDOSYA_ERROR_TIME      = 'not_allowed_time';
+    const PEDIDOSYA_ERROR_WS        = 'pedidosya_error_ws';
+    const PEDIDOSYA_ERROR_DATA      = 'pedidosya_error_data';
 
     /**
      * @var ScopeConfigInterface
@@ -265,7 +266,7 @@ class Data extends AbstractHelper
      * @return mixed
      */
     public function getClosestSourceWaypoint($destWaypoint) {
-        $waypointCollection = $this->_waypointFactory->create()->getCollection();
+        $waypointCollection = $this->_waypointFactory->create()->getCollection()->addFieldToFilter('enabled', 1);
         $closestSourceWaypoint = false;
         $minorDistance = 0;
 
