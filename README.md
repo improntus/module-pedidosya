@@ -6,6 +6,10 @@ Official module [Pedidos Ya](https://www.pedidosya.com.ar/) for Magento 2. The m
 ### Installation
 The module requires Magento 2.0.x or higher for its correct operation. It will need to be installed using the Magento console commands.
 
+```sh
+composer require improntus/module-pedidosya-magento-2
+```
+
 Developer installation mode
 
 ```sh
