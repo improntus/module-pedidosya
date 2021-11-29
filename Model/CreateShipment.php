@@ -136,6 +136,7 @@ class CreateShipment
                             }
                             $data->waypoints[1]->phone = $order->getShippingAddress()->getTelephone();
                             $data->notificationMail =  $order->getShippingAddress()->getEmail();
+                            $data->referenceId = '#' . $order->getIncrementId();
 
                             if($this->_pedidosYaHelper->checkWaypointAvailability($order->getPedidosyaSourceWaypoint(), $data->deliveryTime)) {
                                 $createShippingResult = $this->_webservice->createShipping($data);
