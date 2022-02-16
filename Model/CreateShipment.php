@@ -129,12 +129,24 @@ class CreateShipment
                         $pedidosYa->setIncrementId($order->getIncrementId());
 
                         if($pedidosYaEstimateData = $order->getPedidosyaEstimatedata()) {
+
+                            /**
+                             * If ReferenceId is -1 the order has created in Backend
+                             * and I need update this by EntityId
+                             */
                             $data = json_decode($pedidosYaEstimateData);
+                            if($data->referenceId==-1){
+                                $data->referenceId=$order->getEntityId();
+                                $order->setPedidosyaEstimatedata(json_encode($data));
+                            }
+
                             if(isset($data->deliveryTime)) {
                                 $preparationTime = $this->_pedidosYaHelper->getPreparationTime();
                                 $data->deliveryTime = gmdate('Y-m-d\TH:i:s\Z', strtotime(date('Y-m-d\TH:i:s\Z') . '+'. $preparationTime . ' minutes'));
                             }
-                            $data->waypoints[1]->phone = $order->getShippingAddress()->getTelephone();
+                            $data->waypoints[0]->phone = preg_replace("/[^0-9]/", "", $data->waypoints[0]->phone);
+                            $data->waypoints[1]->phone = preg_replace("/[^0-9]/", "", $order->getShippingAddress()->getTelephone());
+                            $data->waypoints[1]->name = $order->getShippingAddress()->getFirstname()." ".$order->getShippingAddress()->getLastname();
                             $data->notificationMail =  $order->getShippingAddress()->getEmail();
                             $data->referenceId = '#' . $order->getIncrementId();
 
@@ -145,19 +157,17 @@ class CreateShipment
                                     $pedidosYa->setInfoPreorder(json_encode($createShippingResult));
                                     $pedidosYa->save();
 
-                                    if(isset($createShippingResult->referenceId))
-                                        $order->addStatusHistoryComment("Pedidos Ya: Preorder OK. Confirmation Code: " . $createShippingResult->referenceId);
-
                                     $confirmShippingResult = $this->_webservice->confirmShipping($createShippingResult);
 
                                     if(isset($confirmShippingResult->confirmationCode)) {
                                         $pedidosYa->setInfoConfirmed(json_encode($confirmShippingResult));
                                         $pedidosYa->save();
-                                        $order->addStatusHistoryComment("Pedidos Ya: Confirm Order OK. Confirmation Code: " . $confirmShippingResult->confirmationCode);
+                                        $order->addStatusHistoryComment("Pedidos Ya Confirmation Code: " . $confirmShippingResult->confirmationCode);
                                     } else {
                                         $pedidosYa->setStatus('pedidosya_error');
                                         $pedidosYa->save();
                                         $order->addStatusHistoryComment("Pedidos Ya: Confirm Order ERROR.");
+                                        $this->_pedidosYaHelper->log($createShippingResult);
                                         return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS;
                                     }
 
@@ -168,6 +178,7 @@ class CreateShipment
                                     return $this->_pedidosYaHelper::PEDIDOSYA_OK;
                                 } else {
                                     $order->addStatusHistoryComment("Pedidos Ya: Preorder ERROR.");
+                                    $this->_pedidosYaHelper->log($createShippingResult);
                                     return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS;
                                 }
                             } else {

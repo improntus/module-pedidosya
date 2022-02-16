@@ -1,0 +1,52 @@
+<?php
+/**
+ * @var \Improntus\PedidosYa\Block\Adminhtml\System\Config\Fieldset $block
+ */
+
+/**
+ * Get JSON Insured amount by Country
+ */
+$countryInsuredAmounJson = $block->getCountryInsuredAmount();
+?>
+<script>
+    (function  () {
+        require(["jquery"],function($) {
+            $(document).ready(function() {
+                /**
+                 * Get Maximum Insured by Country
+                 */
+                let countryJson = '<?=$countryInsuredAmounJson;?>';
+                $("#carriers_pedidosya_country").on("change",function(){
+                    /**
+                     * Get Selected Country
+                     */
+                    let countrySelected = $(this).val();
+
+                    /**
+                     * Default Option
+                     */
+                    if(countrySelected === ""){
+                        $("option[value='']").prop("disabled",true);
+                        $(this).val("AR");
+                        return false;
+                    }
+
+                    /**
+                     * Parse JSON with country => amount
+                     */
+                    let amountByCountry = JSON.parse(countryJson);
+
+                    /**
+                     * Get amount by Country
+                     */
+                    let countryInsuredAmount = amountByCountry[countrySelected];
+
+                    /**
+                     * Set Insured Amount
+                     */
+                    $("#carriers_pedidosya_country_max_amount_insured").val(countryInsuredAmount);
+                });
+            });
+        });
+    })();
+</script>

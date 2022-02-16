@@ -9,6 +9,9 @@
                 <model>Improntus\PedidosYa\Model\Carrier\PedidosYa</model>
                 <max_package_weight>100</max_package_weight>
                 <mode>testing</mode>
+                <free_shipping>false</free_shipping>
+                <country_max_amount_insured>0</country_max_amount_insured>
+                <country></country>
             </pedidosya>
         </carriers>
     </default>

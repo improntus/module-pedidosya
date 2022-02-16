@@ -97,6 +97,8 @@ class Create extends Action
                     $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. EstimateData field is missing.'));
                 } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_TIME) {
                     $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. Waypoint is not in working hours.'));
+                } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_RIDER) {
+                    $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. There is no rider available at this time'));
                 }
             } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya.') . $e->getMessage());

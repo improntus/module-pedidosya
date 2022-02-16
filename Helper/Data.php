@@ -26,11 +26,14 @@ use Improntus\PedidosYa\Helper\Logger\Logger as PedidosYaLogger;
  */
 class Data extends AbstractHelper
 {
-    const PEDIDOSYA_OK              = 'pedidosya_ok';
-    const PEDIDOSYA_ERROR_STATUS    = 'not_allowed_status';
-    const PEDIDOSYA_ERROR_TIME      = 'not_allowed_time';
-    const PEDIDOSYA_ERROR_WS        = 'pedidosya_error_ws';
-    const PEDIDOSYA_ERROR_DATA      = 'pedidosya_error_data';
+    const PEDIDOSYA_OK                              = 'pedidosya_ok';
+    const PEDIDOSYA_ERROR_STATUS                    = 'not_allowed_status';
+    const PEDIDOSYA_ERROR_TIME                      = 'not_allowed_time';
+    const PEDIDOSYA_ERROR_WS                        = 'pedidosya_error_ws';
+    const PEDIDOSYA_ERROR_DATA                      = 'pedidosya_error_data';
+    const PEDIDOSYA_ERROR_RIDER                     = 'not_rider_available';
+    const PEDIDOSYA_DEFAULT_VALUES_COUNTRY          = ["AR" => 15000, "UY" => 100000, "CL" => 100000, "PA" => 500, "BO" => 1000, "DM" => 2000, "PY" => 1000000,
+                                                       "VE" => 40, "PE" => 200, "EC" => 100, "GT" => 600, "CR" => 100000, "HN" => 2000, "SV" => 35, "NI" => 2500];
 
     /**
      * @var ScopeConfigInterface
@@ -48,7 +51,7 @@ class Data extends AbstractHelper
     protected $_waypointFactory;
 
     /**
-     * @var PedidosYaFactory 
+     * @var PedidosYaFactory
      */
     protected $_pedidosYaFactory;
 
@@ -235,6 +238,22 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @return boolean
+     */
+    public function getFreeShipping()
+    {
+        return $this->_scopeConfig->getValue('carriers/pedidosya/free_shipping', ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDefaultCountryAmount()
+    {
+        return $this->_scopeConfig->getValue('carriers/pedidosya/country_max_amount_insured', ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
      * @param $token
      */
     public function saveToken($token)
@@ -262,6 +281,38 @@ class Data extends AbstractHelper
 
         if($difference > $tokenExpiration)
             return false;
+
+        /**
+         * I check if the token is valid
+         */
+        $curl = curl_init();
+        $url = "https://courier-api.pedidosya.com/v1/categories";
+        curl_setopt_array($curl,
+            [
+                CURLOPT_URL => $url,
+                CURLOPT_CUSTOMREQUEST => "GET",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_HTTPHEADER => [
+                    "Authorization: {$token->getToken()}",
+                    "Content-Type: application/json"
+                ],
+            ]);
+
+        $response = curl_exec($curl);
+        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        /**
+         * Check status request
+         */
+        if(curl_error($curl)){
+            $this->log("ERROR: curl ".curl_error($curl));
+            return false;
+        } elseif($httpcode != 200) {
+            $response = json_decode($response);
+            $this->log("Error: {$response->messages[0]} - Invalid Access Token REFRESH");
+            return false;
+        }
 
         $token->setLastestUse(date("Y-m-d H:i:s"));
         $token->save();

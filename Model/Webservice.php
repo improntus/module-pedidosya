@@ -116,7 +116,8 @@ class Webservice
                 CURLOPT_TIMEOUT => 30,
                 CURLOPT_HTTPHEADER => [
                     "Authorization: {$this->_accessToken}",
-                    "Content-Type: application/json"
+                    "Content-Type: application/json",
+                    "Origin: Magento"
                 ],
             ]);
 
@@ -153,7 +154,8 @@ class Webservice
                 CURLOPT_TIMEOUT => 30,
                 CURLOPT_HTTPHEADER => [
                     "Authorization: {$this->_accessToken}",
-                    "Content-Type: application/json"
+                    "Content-Type: application/json",
+                    "Origin: Magento"
                 ],
             ]);
 
@@ -195,7 +197,8 @@ class Webservice
                 CURLOPT_TIMEOUT => 30,
                 CURLOPT_HTTPHEADER => [
                     "Authorization: {$this->_accessToken}",
-                    "Content-Type: application/json"
+                    "Content-Type: application/json",
+                    "Origin: Magento"
                 ],
             ]);
 
@@ -238,7 +241,8 @@ class Webservice
                 CURLOPT_TIMEOUT => 30,
                 CURLOPT_HTTPHEADER => [
                     "Authorization: {$this->_accessToken}",
-                    "Content-Type: application/json"
+                    "Content-Type: application/json",
+                    "Origin: Magento"
                 ],
             ]);
 
@@ -282,7 +286,8 @@ class Webservice
                 CURLOPT_TIMEOUT => 30,
                 CURLOPT_HTTPHEADER => [
                     "Authorization: {$this->_accessToken}",
-                    "Content-Type: application/json"
+                    "Content-Type: application/json",
+                    "Origin: Magento"
                 ],
             ]);
 
@@ -317,7 +322,8 @@ class Webservice
                 CURLOPT_TIMEOUT => 30,
                 CURLOPT_HTTPHEADER => [
                     "Authorization: {$this->_accessToken}",
-                    "Content-Type: application/json"
+                    "Content-Type: application/json",
+                    "Origin: Magento"
                 ],
             ]);
 
@@ -358,7 +364,8 @@ class Webservice
                 CURLOPT_TIMEOUT => 30,
                 CURLOPT_HTTPHEADER => [
                     "Authorization: {$this->_accessToken}",
-                    "Content-Type: application/json"
+                    "Content-Type: application/json",
+                    "Origin: Magento"
                 ],
             ]);
 

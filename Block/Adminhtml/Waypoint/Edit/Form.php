@@ -135,6 +135,18 @@ class Form extends Generic
                 'label' => __('Telephone'),
                 'id' => 'telephone',
                 'title' => __('Telephone'),
+                'required' => true
+            ]
+        );
+
+        $fieldset->addField(
+            'instructions',
+            'text',
+            [
+                'name' => 'instructions',
+                'label' => __('Instructions'),
+                'id' => 'instructions',
+                'title' => __('Instructions'),
                 'required' => false
             ]
         );

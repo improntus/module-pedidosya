@@ -239,7 +239,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         $totalPrice = 0;
         $totalVolume = 0;
 
-        $category = $this->_helper->getCategory();
+        //$category = $this->_helper->getCategory();
 
         foreach($request->getAllItems() as $_item) {
             if($_item->getProductType() == 'configurable')
@@ -258,7 +258,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             $totalPrice += $_product->getFinalPrice();
 
             $itemsWspedidosYa[] = [
-                'categoryId'    => $category,
+                //'categoryId'    => $category,
                 'value'         => $_item->getPrice(),
                 'description'   => $_item->getName(),
                 'quantity'      => $_item->getQty(),
@@ -269,15 +269,31 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
 
         $totalWeight  = $request->getPackageWeight();
 
+        /**
+         * Maximum insured amount by Pedidos Ya
+         */
+        if ($request->getPackageValue() > $helper->getDefaultCountryAmount()) {
+            $error = $this->_rateErrorFactory->create();
+            $error->setCarrier($this->_code);
+            $error->setCarrierTitle($this->getConfigData('title'));
+            $error->setErrorMessage(__('Maximum value exceeded'));
+            $result->append($error);
+            return $result;
+        }
+
         if($totalWeight > (int)$helper->getMaxWeight()) {
             $error = $this->_rateErrorFactory->create();
             $error->setCarrier($this->_code);
             $error->setCarrierTitle($this->getConfigData('title'));
             $error->setErrorMessage(__('Maximum weight exceeded'));
             $result->append($error);
+            return $result;
         }
 
-        $isFreeShipping = $request->getFreeShipping();
+        /**
+         * Apply Free Shipping?
+         */
+        $isFreeShipping = $helper->getFreeShipping() ? $request->getFreeShipping() : false;
 
         if($request->getDestStreet() && $request->getDestPostcode()) {
             $waypointData['waypoints'][] = [
@@ -333,9 +349,14 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 "order"             =>  2
             ];
 
+            /**
+             * Get ReferenceId
+             */
+            $referenceId = $this->_checkoutSession->getQuoteId() ?: -1;
+
             $estimatePriceData =
                 [
-                    "referenceId"   => $this->_checkoutSession->getQuoteId(),
+                    "referenceId"   => $referenceId,
                     "isTest"        => $this->_helper->getMode() == 'testing',
                     "deliveryTime"  => $this->_date->gmtDate('Y-m-d\TH:i:s\Z'),
                     "volume"        => $totalVolume,
