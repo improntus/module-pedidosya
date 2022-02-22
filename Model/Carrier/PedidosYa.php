@@ -323,6 +323,13 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 $result->append($error);
                 return $result;
                 }
+            } else if (!isset($waypointCoverage->waypoints) || $waypointCoverage->code == 'INVALID_TOKEN') {
+                $error = $this->_rateErrorFactory->create();
+                $error->setCarrier($this->_code);
+                $error->setCarrierTitle($this->getConfigData('title'));
+                $error->setErrorMessage(__('An error occurred when quoting shipping'));
+                $result->append($error);
+                return $result;
             }
 
             $closestSourceWaypoint = $this->_helper->getClosestSourceWaypoint($waypointCoverage);
