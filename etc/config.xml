@@ -12,6 +12,7 @@
                 <free_shipping>false</free_shipping>
                 <country_max_amount_insured>0</country_max_amount_insured>
                 <country></country>
+                <debug>0</debug>
             </pedidosya>
         </carriers>
     </default>

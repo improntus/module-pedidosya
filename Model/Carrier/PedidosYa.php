@@ -223,8 +223,6 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         if (!$this->getConfigFlag('active'))
             return false;
 
-        $helper = $this->_helper;
-
         $result = $this->_rateResultFactory->create();
         $method = $this->_rateMethodFactory->create();
 
@@ -233,14 +231,16 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         $method->setMethod($this->_code);
         $method->setMethodTitle($this->getConfigData('description'));
 
+        $helper = $this->_helper;
         $webservice = $this->_webservice;
-
+        $debugMode = $helper->getDebugMode();
         $itemsWspedidosYa = [];
         $totalPrice = 0;
         $totalVolume = 0;
 
-        //$category = $this->_helper->getCategory();
-
+        /**
+         * Items
+         */
         foreach($request->getAllItems() as $_item) {
             if($_item->getProductType() == 'configurable')
                 continue;
@@ -258,21 +258,20 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             $totalPrice += $_product->getFinalPrice();
 
             $itemsWspedidosYa[] = [
-                //'categoryId'    => $category,
                 'value'         => $_item->getPrice(),
                 'description'   => $_item->getName(),
-                'quantity'      => $_item->getQty(),
+                'quantity'      => round($_item->getQty()),
                 'volume'        => $volume,
                 'weight'        => $_product->getWeight() * 1000 * $_item->getQty(),
             ];
         }
 
-        $totalWeight  = $request->getPackageWeight();
+        $totalWeight = $request->getPackageWeight();
 
         /**
          * Maximum insured amount by Pedidos Ya
          */
-        if ($request->getPackageValue() > $helper->getDefaultCountryAmount()) {
+        if ($request->getPackageValue() > (int)$helper->getDefaultCountryAmount()) {
             $error = $this->_rateErrorFactory->create();
             $error->setCarrier($this->_code);
             $error->setCarrierTitle($this->getConfigData('title'));
@@ -296,25 +295,30 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         $isFreeShipping = $helper->getFreeShipping() ? $request->getFreeShipping() : false;
 
         if($request->getDestStreet() && $request->getDestPostcode()) {
+            /**
+             * Start Log
+             */
+            if($debugMode) $helper->log("=============== START LOG ===============");
+
             $waypointData['waypoints'][] = [
                 'addressStreet' => trim(preg_replace('/\n/', ' ', $request->getDestStreet())),
                 'city'          => $request->getDestCity()
             ];
 
+            if($debugMode) $helper->log(json_encode(["Waypoint Coverage Send Data: " => $waypointData]));
             $waypointCoverage = $this->_webservice->getEstimateCoverage($waypointData);
+            if($debugMode) $helper->log(json_encode(["Waypoint Coverage Get Data:" => $waypointCoverage]));
 
-            if($isFreeShipping == 1) {
-                $method->setPrice(0);
-                $method->setCost(0);
-                $result->append($method);
-            } elseif($waypointCoverage == false) {
+            if($waypointCoverage == false) {
                 $error = $this->_rateErrorFactory->create();
                 $error->setCarrier($this->_code);
                 $error->setCarrierTitle($this->getConfigData('title'));
                 $error->setErrorMessage(__('There are no shipping estimate for the address entered'));
                 $result->append($error);
                 return $result;
-            } else if(isset($waypointCoverage->waypoints[0])) {
+            }
+
+            if(isset($waypointCoverage->waypoints[0])) {
                 if($waypointCoverage->waypoints[0]->status == 'NOT_FOUND') {
                     $error = $this->_rateErrorFactory->create();
                     $error->setCarrier($this->_code);
@@ -323,7 +327,9 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 $result->append($error);
                 return $result;
                 }
-            } else if (!isset($waypointCoverage->waypoints) || $waypointCoverage->code == 'INVALID_TOKEN') {
+            }
+
+            if (!isset($waypointCoverage->waypoints) || (isset($waypointCoverage->code) && $waypointCoverage->code == 'INVALID_TOKEN')) {
                 $error = $this->_rateErrorFactory->create();
                 $error->setCarrier($this->_code);
                 $error->setCarrierTitle($this->getConfigData('title'));
@@ -333,6 +339,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             }
 
             $closestSourceWaypoint = $this->_helper->getClosestSourceWaypoint($waypointCoverage);
+            if($debugMode) $helper->log(json_encode(["Closest Source Waypoint:" => $closestSourceWaypoint->getData()]));
 
             $waypoints[] = [
                 "type"              => "PICK_UP",
@@ -372,9 +379,16 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                     "waypoints"     => $waypoints
                 ];
 
+            if($debugMode) $helper->log(json_encode(["Estimate Data:" => $estimatePriceData]));
+
             $shippingPrice = $webservice->getEstimatePrice($estimatePriceData);
+            if($debugMode) $helper->log(json_encode(["Shipping Price" => $shippingPrice]));
 
             if($isFreeShipping == 1) {
+                $method->setPrice(0);
+                $method->setCost(0);
+                $result->append($method);
+
                 $this->_checkoutSession->setPedidosyaEstimatedata(json_encode($estimatePriceData));
                 $this->_checkoutSession->setPedidosyaSourceWaypoint($closestSourceWaypoint->getEntityId());
             } elseif(isset($shippingPrice->price)) {
@@ -399,6 +413,11 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 $error->setErrorMessage(__('There are no shipping estimate for the address entered'));
                 $result->append($error);
             }
+
+            /**
+             * End Log
+             */
+            if($debugMode) $helper->log("=============== END LOG ===============");
         }
 
         return $result;

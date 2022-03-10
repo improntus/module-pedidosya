@@ -254,6 +254,14 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @return bool
+     */
+    public function getDebugMode()
+    {
+        return (bool)$this->_scopeConfig->getValue('carriers/pedidosya/debug', ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
      * @param $token
      */
     public function saveToken($token)

@@ -73,20 +73,24 @@
                     <label>Mode</label>
                     <source_model>Improntus\PedidosYa\Model\Config\Source\ModeOption</source_model>
                 </field>
-                <field id="category" translate="label" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="debug" translate="label" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Debug Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="category" translate="label" type="select" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Category</label>
                     <source_model>Improntus\PedidosYa\Model\Config\Source\CategoryOption</source_model>
                 </field>
-                <field id="product_volume_attribute" translate="label" type="select" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="product_volume_attribute" translate="label" type="select" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Volume attribute code</label>
                     <source_model>Improntus\PedidosYa\Model\Config\Source\CatalogProductOption</source_model>
                 </field>
-                <field id="preparation_time" translate="label" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="preparation_time" translate="label" type="text" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Preparation time</label>
                     <validate>required-entry</validate>
                     <comment>Preparation time in minutes</comment>
                 </field>
-                <field id="status_allowed" translate="label" type="multiselect" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="status_allowed" translate="label" type="multiselect" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Status for automatic Pedidos Ya shipping creation</label>
                     <source_model>Improntus\PedidosYa\Model\Config\Source\StatusOrderOption</source_model>
                     <comment>When order change to one of this selected status, shipment will be generated automatically</comment>
