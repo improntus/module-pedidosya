@@ -19,6 +19,7 @@ use Magento\Store\Model\ScopeInterface;
 use Improntus\PedidosYa\Model\TokenFactory;
 use Improntus\PedidosYa\Model\PedidosYaFactory;
 use Improntus\PedidosYa\Helper\Logger\Logger as PedidosYaLogger;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 
 /**
  * Class Data
@@ -85,18 +86,11 @@ class Data extends AbstractHelper
     protected $_pedidosYaLogger;
 
     /**
-     * @param Context $context
-     * @param ScopeConfigInterface $scopeConfig
-     * @param TokenFactory $tokenFactory
-     * @param WaypointFactory $waypointFactory
-     * @param ShipmentNotifier $shipmentNotifier
-     * @param TrackFactory $trackFactory
-     * @param Order $convertOrder
-     * @param StatusFactory $trackStatusFactory
-     * @param ResultFactory $trackResultFactory
-     * @param PedidosYaFactory $pedidosYaFactory
-     * @param PedidosYaLogger $pedidosYaLogger
+     * @var TimezoneInterface
      */
+    protected $timezone;
+
+
     public function __construct(
         Context $context,
         ScopeConfigInterface $scopeConfig,
@@ -108,7 +102,8 @@ class Data extends AbstractHelper
         StatusFactory $trackStatusFactory,
         ResultFactory $trackResultFactory,
         PedidosYaFactory $pedidosYaFactory,
-        PedidosYaLogger $pedidosYaLogger
+        PedidosYaLogger $pedidosYaLogger,
+        TimezoneInterface $timezone
     ) {
         $this->_scopeConfig         = $scopeConfig;
         $this->_tokenFactory        = $tokenFactory;
@@ -120,6 +115,7 @@ class Data extends AbstractHelper
         $this->_trackStatusFactory  = $trackStatusFactory;
         $this->_trackResultFactory  = $trackResultFactory;
         $this->_pedidosYaLogger     = $pedidosYaLogger;
+        $this->timezone = $timezone;
         parent::__construct($context);
     }
 
@@ -468,9 +464,13 @@ class Data extends AbstractHelper
      */
     public function checkWaypointAvailability($waypointId, $deliveryTime)
     {
-        $days = [1 => 'monday', 2 => 'tuesday', 3 => 'wednesday', 4 => 'thursday', 5 => 'friday', 6 => 'saturday', 7 => 'sunday'];
+        /**
+         * Fix Format W: Numerical representation of the day of the week 0 (Sunday) > 6 (Saturday)
+         * Implement Timezone Interface to get day
+         */
+        $days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
         $waypoint = $this->getWaypointById($waypointId);
-        $day = $days[date('w', strtotime($deliveryTime))];
+        $day = $days[date("w", strtotime($this->timezone->date()->format("Y-m-d\TH:i:s\Z")))];
         $openHour = $waypoint->getData('working_hours_'. $day. '_open');
         $closeHour = $waypoint->getData('working_hours_'. $day. '_close');
 

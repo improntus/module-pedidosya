@@ -26,6 +26,7 @@ use Improntus\PedidosYa\Helper\Data as PedidosYaHelper;
 use Improntus\PedidosYa\Model\Webservice;
 use Magento\Framework\Xml\Security;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 
 /**
  * Class PedidosYa
@@ -93,29 +94,11 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
     protected $_date;
 
     /**
-     * @param ScopeConfigInterface $scopeConfig
-     * @param ErrorFactory $rateErrorFactory
-     * @param LoggerInterface $logger
-     * @param Security $xmlSecurity
-     * @param ElementFactory $xmlElFactory
-     * @param ResultFactory $rateFactory
-     * @param MethodFactory $rateMethodFactory
-     * @param \Magento\Shipping\Model\Tracking\ResultFactory $trackFactory
-     * @param \Magento\Shipping\Model\Tracking\Result\ErrorFactory $trackErrorFactory
-     * @param StatusFactory $trackStatusFactory
-     * @param RegionFactory $regionFactory
-     * @param CountryFactory $countryFactory
-     * @param CurrencyFactory $currencyFactory
-     * @param Data $directoryData
-     * @param StockRegistryInterface $stockRegistry
-     * @param RequestInterface $request
-     * @param Webservice $webservice
-     * @param PedidosYaHelper $pedidosYaHelper
-     * @param Session $checkoutSession
-     * @param CartRepositoryInterface $quoteRepository
-     * @param DateTime $date
-     * @param array $data
+     * @var TimezoneInterface
      */
+    protected $timezone;
+
+
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         ErrorFactory $rateErrorFactory,
@@ -138,6 +121,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         Session                 $checkoutSession,
         CartRepositoryInterface $quoteRepository,
         DateTime                $date,
+        TimezoneInterface       $timezone,
         array                   $data = []
     )
     {
@@ -149,7 +133,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         $this->_checkoutSession   = $checkoutSession;
         $this->_quoteRepository   = $quoteRepository;
         $this->_date              = $date;
-
+        $this->timezone           = $timezone;
         parent::__construct(
             $scopeConfig,
             $rateErrorFactory,
@@ -372,7 +356,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 [
                     "referenceId"   => $referenceId,
                     "isTest"        => $this->_helper->getMode() == 'testing',
-                    "deliveryTime"  => $this->_date->gmtDate('Y-m-d\TH:i:s\Z'),
+                    "deliveryTime"  => $this->timezone->date()->format('Y-m-d\TH:i:s\Z'),
                     "volume"        => $totalVolume,
                     "weight"        => $totalWeight,
                     "items"         => $itemsWspedidosYa,
