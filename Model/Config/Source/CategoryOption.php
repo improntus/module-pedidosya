@@ -7,6 +7,8 @@ use Magento\Framework\Option\ArrayInterface;
 
 /**
  * Class CategoryOption
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Model\Config\Source
  */
 class CategoryOption implements ArrayInterface

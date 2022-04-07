@@ -8,6 +8,8 @@ use Magento\Checkout\Model\Session;
 
 /**
  * Class SalesOrderPlaceBefore
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Observer
  */
 class SalesOrderPlaceBefore implements ObserverInterface

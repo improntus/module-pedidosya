@@ -30,6 +30,10 @@ use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 
 /**
  * Class PedidosYa
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Model\Carrier
  */
 class PedidosYa extends AbstractCarrierOnline implements CarrierInterface

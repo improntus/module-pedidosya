@@ -18,6 +18,8 @@ use Improntus\PedidosYa\Helper\Data as PedidosYaHelper;
 
 /**
  * Class Cancel
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Controller\Adminhtml\Shipment
  */
 class Cancel extends Action

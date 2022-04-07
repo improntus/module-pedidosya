@@ -8,6 +8,8 @@ use Magento\Framework\View\Result\PageFactory;
 
 /**
  * Class Create
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Controller\Adminhtml\Waypoint
  */
 class Create extends Action

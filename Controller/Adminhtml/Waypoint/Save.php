@@ -8,6 +8,8 @@ use Magento\Framework\Filesystem;
 
 /**
  * Class Save
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Controller\Adminhtml\Waypoint
  */
 class Save extends \Magento\Backend\App\Action

@@ -5,6 +5,12 @@ Use Improntus\PedidosYa\Helper\Data;
 use Magento\Framework\View\Element\Template;
 Use Magento\Framework\View\Element\Template\Context;
 
+/**
+ * Class CountryInsuredAmount
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
+ * @package Improntus\PedidosYa\Block\Adminhtml\System\Config\Fieldset
+ */
 class CountryInsuredAmount extends Template
 {
     /**
@@ -32,5 +38,4 @@ class CountryInsuredAmount extends Template
     public function getCountryInsuredAmount(){
         return json_encode($this->helper::PEDIDOSYA_DEFAULT_VALUES_COUNTRY,JSON_NUMERIC_CHECK);
     }
-
 }

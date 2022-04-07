@@ -6,6 +6,8 @@ use Magento\Framework\Option\ArrayInterface;
 
 /**
  * Class ModeOption
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Model\Config\Source
  */
 class ModeOption implements ArrayInterface

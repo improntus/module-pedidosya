@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \Improntus\PedidosYa\Block\Adminhtml\System\Config\Fieldset $block
+ * @var \Improntus\PedidosYa\Block\Adminhtml\System\Config\Fieldset\CountryInsuredAmount $block
  */
 
 /**
@@ -15,7 +15,7 @@ $countryInsuredAmounJson = $block->getCountryInsuredAmount();
                 /**
                  * Get Maximum Insured by Country
                  */
-                let countryJson = '<?=$countryInsuredAmounJson;?>';
+                let countryJson = '<?= /** @noEscape */ $countryInsuredAmounJson;?>';
                 $("#carriers_pedidosya_country").on("change",function(){
                     /**
                      * Get Selected Country

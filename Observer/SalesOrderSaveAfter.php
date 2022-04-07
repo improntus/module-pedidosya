@@ -8,6 +8,8 @@ use Improntus\PedidosYa\Model\CreateShipment;
 
 /**
  * Class SalesOrderSaveAfter
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Observer
  */
 class SalesOrderSaveAfter implements ObserverInterface

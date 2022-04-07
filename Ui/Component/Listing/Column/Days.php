@@ -9,6 +9,8 @@ use Magento\Framework\Serialize\SerializerInterface;
 
 /**
  * Class Days
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Ui\Component\Listing\Column
  */
 class Days extends Column

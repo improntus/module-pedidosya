@@ -12,6 +12,8 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Class Collection
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Model\ResourceModel\Waypoint
  */
 class Collection extends AbstractCollection

@@ -23,6 +23,8 @@ use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 
 /**
  * Class Data
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Helper
  */
 class Data extends AbstractHelper

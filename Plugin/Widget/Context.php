@@ -9,6 +9,8 @@ use Improntus\PedidosYa\Helper\Data as DataPedidosYa;
 
 /**
  * Class Context
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Plugin\Widget
  */
 class Context

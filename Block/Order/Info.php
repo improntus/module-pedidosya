@@ -11,6 +11,8 @@ use Magento\Sales\Model\Order\Address\Renderer as AddressRenderer;
 
 /**
  * Class Info
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Block\Order
  */
 class Info extends \Magento\Sales\Block\Order\Info

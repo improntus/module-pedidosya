@@ -14,6 +14,8 @@ use Magento\Store\Model\System\Store;
 
 /**
  * Class Form
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Block\Adminhtml\Waypoint\Edit
  */
 class Form extends Generic

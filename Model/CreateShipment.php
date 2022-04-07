@@ -14,6 +14,8 @@ use Magento\Framework\Message\ManagerInterface;
 
 /**
  * Class CreateShipment
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Model
  */
 class CreateShipment

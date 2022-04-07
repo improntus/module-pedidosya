@@ -8,6 +8,8 @@ use Magento\Framework\Registry;
 
 /**
  * Class Container
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Block\Adminhtml\Waypoint\Edit
  */
 class Container extends \Magento\Backend\Block\Widget\Form\Container

@@ -6,6 +6,8 @@ use Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult;
 
 /**
  * Class Collection
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Ui\DataProvider\Waypoint\Listing
  */
 class Collection extends SearchResult

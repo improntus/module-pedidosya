@@ -6,6 +6,8 @@ use Improntus\PedidosYa\Helper\Data as HelperPedidosYa;
 
 /**
  * Class Webservice
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Model
  */
 class Webservice
