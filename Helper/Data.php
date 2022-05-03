@@ -316,7 +316,8 @@ class Data extends AbstractHelper
             return false;
         } elseif($httpcode != 200) {
             $response = json_decode($response);
-            $this->log("Error: {$response->messages[0]} - Invalid Access Token REFRESH");
+            $message = isset($response->messages) ? $response->messages[0] : "Unknown";
+            $this->log("Error: {$message} - Invalid Access Token REFRESH");
             return false;
         }
 

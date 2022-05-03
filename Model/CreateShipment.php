@@ -153,9 +153,15 @@ class CreateShipment
                             $data->referenceId = '#' . $order->getIncrementId();
 
                             if($this->_pedidosYaHelper->checkWaypointAvailability($order->getPedidosyaSourceWaypoint(), $data->deliveryTime)) {
+                                /**
+                                 * Create Shipping
+                                 */
                                 $createShippingResult = $this->_webservice->createShipping($data);
 
-                                if($createShippingResult) {
+                                /**
+                                 * Check PYa Shipping Response
+                                 */
+                                if(isset($createShippingResult->price)){
                                     $pedidosYa->setInfoPreorder(json_encode($createShippingResult));
                                     $pedidosYa->save();
 
@@ -168,7 +174,8 @@ class CreateShipment
                                     } else {
                                         $pedidosYa->setStatus('pedidosya_error');
                                         $pedidosYa->save();
-                                        $order->addStatusHistoryComment("Pedidos Ya: Confirm Order ERROR.");
+                                        $errorMessage = $createShippingResult->message ?? $createShippingResult->code;
+                                        $order->addStatusHistoryComment("Pedidos Ya Confirm Order ERROR: $errorMessage");
                                         $this->_pedidosYaHelper->log($createShippingResult);
                                         return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS;
                                     }
@@ -179,9 +186,11 @@ class CreateShipment
                                     $this->_pedidosYaHelper->createShipment($order, $pedidosYa);
                                     return $this->_pedidosYaHelper::PEDIDOSYA_OK;
                                 } else {
-                                    $order->addStatusHistoryComment("Pedidos Ya: Preorder ERROR.");
-                                    $this->_pedidosYaHelper->log($createShippingResult);
-                                    return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS;
+                                    $this->_pedidosYaHelper->log(json_encode($createShippingResult,JSON_PRETTY_PRINT));
+                                    $errorMessage = $createShippingResult->message ?? $createShippingResult->code;
+                                    $order->addStatusHistoryComment("Pedidos Ya Pre order ERROR: $errorMessage");
+                                    $order->save();
+                                    return $errorMessage;
                                 }
                             } else {
                                 return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_TIME;

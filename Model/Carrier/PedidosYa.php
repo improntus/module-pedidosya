@@ -238,17 +238,22 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             if($_item->getParentItem())
                 $_item = $_item->getParentItem();
 
-
             $volumeCode = $this->_helper->getVolumeAttribute() ? $this->_helper->getVolumeAttribute() : 'volume';
             $volume = (int) $_product->getResource()->getAttributeRawValue($_product->getId(), $volumeCode, $_product->getStoreId()) * $_item->getQty();
             $totalVolume += $volume;
 
             $totalPrice += $_product->getFinalPrice();
 
+            /**
+             * Fix Quantity
+             * PedidosYa requires integers
+             */
+            $quantity = ceil($_item->getQty());
+
             $itemsWspedidosYa[] = [
                 'value'         => $_item->getPrice(),
                 'description'   => $_item->getName(),
-                'quantity'      => round($_item->getQty()),
+                'quantity'      => $quantity,
                 'volume'        => $volume,
                 'weight'        => $_product->getWeight() * 1000 * $_item->getQty(),
             ];
@@ -293,9 +298,11 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 'city'          => $request->getDestCity()
             ];
 
-            if($debugMode) $helper->log(json_encode(["Waypoint Coverage Send Data: " => $waypointData]));
+            if($debugMode) $helper->log(json_encode(["Waypoint Coverage Send Data: " => $waypointData],JSON_PRETTY_PRINT));
+
             $waypointCoverage = $this->_webservice->getEstimateCoverage($waypointData);
-            if($debugMode) $helper->log(json_encode(["Waypoint Coverage Get Data:" => $waypointCoverage]));
+
+            if($debugMode) $helper->log(json_encode(["Waypoint Coverage Get Data:" => $waypointCoverage],JSON_PRETTY_PRINT));
 
             if($waypointCoverage == false) {
                 $error = $this->_rateErrorFactory->create();
@@ -327,7 +334,8 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             }
 
             $closestSourceWaypoint = $this->_helper->getClosestSourceWaypoint($waypointCoverage);
-            if($debugMode) $helper->log(json_encode(["Closest Source Waypoint:" => $closestSourceWaypoint->getData()]));
+
+            if($debugMode) $helper->log(json_encode(["Closest Source Waypoint:" => $closestSourceWaypoint->getData()],JSON_PRETTY_PRINT));
 
             $waypoints[] = [
                 "type"              => "PICK_UP",
@@ -367,10 +375,11 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                     "waypoints"     => $waypoints
                 ];
 
-            if($debugMode) $helper->log(json_encode(["Estimate Data:" => $estimatePriceData]));
+            if($debugMode) $helper->log(json_encode(["Estimate Data:" => $estimatePriceData],JSON_PRETTY_PRINT));
 
             $shippingPrice = $webservice->getEstimatePrice($estimatePriceData);
-            if($debugMode) $helper->log(json_encode(["Shipping Price" => $shippingPrice]));
+
+            if($debugMode) $helper->log(json_encode(["Shipping Price" => $shippingPrice],JSON_PRETTY_PRINT));
 
             if($isFreeShipping == 1) {
                 $method->setPrice(0);

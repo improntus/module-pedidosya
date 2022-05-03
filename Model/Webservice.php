@@ -129,7 +129,7 @@ class Webservice
 
         if($httpcode != 200) {
             $response = json_decode($response);
-            $this->_helper->log('Error:');
+            $this->_helper->log('Error Webservice:');
             if(isset($response->message))
                 $this->_helper->log($response->message);
         }
@@ -210,19 +210,14 @@ class Webservice
 
         if($httpcode != 200) {
             if($httpcode == 400) {
-                $this->_helper->log("Error: " .$responseObject->message);
-                return false;
+                $this->_helper->log("Error WebService: " .$responseObject->message);
+                return $responseObject;
             }
             $error = 'There was an error in createShipping method: '. curl_error($curl);
-            $this->_helper->log("Error: " .$error);
-            return false;
+            $this->_helper->log("Error WebService: " .$error);
         }
 
-        if(isset($responseObject->price)) {
-            return $responseObject;
-        } else {
-            return false;
-        }
+        return $responseObject;
     }
 
     /**
@@ -233,7 +228,7 @@ class Webservice
     {
         $curl = curl_init();
         $confirmData['id'] = $data->id;
-        $url = "https://courier-api.pedidosya.com/v1/shippings/". $confirmData['id'] ."/confirm";
+        $url = "https://courier-api.pedidosya.com/v1/shippings/{$confirmData['id']}/confirm";
         curl_setopt_array($curl,
             [
                 CURLOPT_URL => $url,
@@ -250,11 +245,23 @@ class Webservice
 
         $response = curl_exec($curl);
         $responseObject = json_decode($response);
+        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        if(curl_error($curl))
+        if($httpcode != 200) {
+            if($httpcode == 400) {
+                $this->_helper->log("Error WebService: " .$responseObject->message);
+                return $responseObject;
+            }
+            $error = 'There was an error in confirmShipping method: '. curl_error($curl);
+            $this->_helper->log("Error WebService: " .$error);
+        }
+
+        return $responseObject;
+
+        /**if(curl_error($curl))
         {
             $error = 'There was an error in confirmShipping method: '. curl_error($curl);
-            $this->_helper->log('Error:');
+            $this->_helper->log('Error WebService:');
             $this->_helper->log($error);
 
             return false;
@@ -264,7 +271,7 @@ class Webservice
             return $responseObject;
         } else {
             return false;
-        }
+        }*/
     }
 
     /**
@@ -278,7 +285,7 @@ class Webservice
 
         $mapRequired = 'false';
         $mapRequired = 'mapRequired='.$mapRequired;
-        $url = "https://courier-api.pedidosya.com/v1/estimates/coverage?" .$mapRequired;
+        $url = "https://courier-api.pedidosya.com/v1/estimates/coverage?{$mapRequired}";
         curl_setopt_array($curl,
             [
                 CURLOPT_URL => $url,
@@ -294,14 +301,27 @@ class Webservice
             ]);
 
         $response = curl_exec($curl);
+        $responseObject = json_decode($response);
+        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        if(curl_error($curl)) {
+        if($httpcode != 200) {
+            if($httpcode == 400) {
+                $this->_helper->log("Error WebService: " .$responseObject->message);
+                return $responseObject;
+            }
             $error = 'There was an error in getEstimateCoverage method: '. curl_error($curl);
-            $this->_helper->log($error );
+            $this->_helper->log("Error WebService: " .$error);
+        }
 
+        return $responseObject;
+
+        /**
+        if(curl_error($curl)) {
+            $error = 'Error WebService: There was an error in getEstimateCoverage method: '. curl_error($curl);
+            $this->_helper->log($error);
             return false;
         }
-        return json_decode($response);
+        return json_decode($response);*/
     }
 
     /**
@@ -312,7 +332,7 @@ class Webservice
     public function cancelShippingOrder($id, $reason)
     {
         $curl = curl_init();
-        $url = "https://courier-api.pedidosya.com/v1/shippings/". $id ."/cancel";
+        $url = "https://courier-api.pedidosya.com/v1/shippings/{$id}/cancel";
         $reason = json_encode($reason);
 
         curl_setopt_array($curl,
@@ -334,19 +354,15 @@ class Webservice
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
         if($httpcode != 200) {
-            $this->_helper->log('Error:');
-            if(isset($responseObject->message)) {
-                $this->_helper->log($responseObject->message);
+            if($httpcode == 400) {
+                $this->_helper->log("Error WebService: " .$responseObject->message);
                 return $responseObject;
             }
-            return false;
+            $error = 'There was an error in confirmShipping method: '. curl_error($curl);
+            $this->_helper->log("Error WebService: " .$error);
         }
 
-        if(isset($responseObject->status)) {
-            return $responseObject;
-        } else {
-            return false;
-        }
+        return $responseObject;
     }
 
     /**
@@ -356,7 +372,7 @@ class Webservice
     public function getShippingOrderDetails($id)
     {
         $curl = curl_init();
-        $url = "https://courier-api.pedidosya.com/v1/shippings/". $id;
+        $url = "https://courier-api.pedidosya.com/v1/shippings/{$id}";
 
         curl_setopt_array($curl,
             [
@@ -376,17 +392,14 @@ class Webservice
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
         if($httpcode != 200) {
-            $response = json_decode($response);
-            $this->_helper->log('Error:');
-            if(isset($response->messages))
-                $this->_helper->log($response->messages[0]);
-            return false;
+            if($httpcode == 400) {
+                $this->_helper->log("Error WebService: " .$responseObject->message);
+                return $responseObject;
+            }
+            $error = 'There was an error in getShippingOrderDetails method: '. curl_error($curl);
+            $this->_helper->log("Error WebService: " .$error);
         }
 
-        if(isset($responseObject->status)) {
-            return $responseObject;
-        } else {
-            return false;
-        }
+        return $responseObject;
     }
 }
