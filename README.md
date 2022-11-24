@@ -30,5 +30,5 @@ php bin/magento deploy:mode:set production
  
 ## Author
 
-[![N|Solid](https://www.improntus.com/developed-by-small.png)](https://www.improntus.com)
+[![N|Solid](https://improntus.com/wp-content/uploads/2022/05/Logo-Site.png)](https://www.improntus.com)
 
