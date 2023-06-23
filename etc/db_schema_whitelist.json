@@ -1,0 +1,69 @@
+{
+    "sales_order": {
+        "column": {
+            "pedidosya_estimatedata": true,
+            "pedidosya_source_waypoint": true
+        }
+    },
+    "improntus_pedidosya": {
+        "column": {
+            "entity_id": true,
+            "order_id": true,
+            "increment_id": true,
+            "info_preorder": true,
+            "info_confirmed": true,
+            "info_cancelled": true,
+            "status": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "IMPRONTUS_PEDIDOSYA_ORDER_ID": true
+        }
+    },
+    "improntus_pedidosya_token": {
+        "column": {
+            "entity_id": true,
+            "token": true,
+            "store_id": true,
+            "latest_use": true,
+            "lastest_use": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "IMPRONTUS_PEDIDOSYA_TOKEN_STORE_ID": true
+        }
+    },
+    "improntus_pedidosya_waypoint": {
+        "column": {
+            "entity_id": true,
+            "enabled": true,
+            "name": true,
+            "address": true,
+            "additional_information": true,
+            "telephone": true,
+            "working_hours_monday_open": true,
+            "working_hours_monday_close": true,
+            "working_hours_tuesday_open": true,
+            "working_hours_tuesday_close": true,
+            "working_hours_wednesday_open": true,
+            "working_hours_wednesday_close": true,
+            "working_hours_thursday_open": true,
+            "working_hours_thursday_close": true,
+            "working_hours_friday_open": true,
+            "working_hours_friday_close": true,
+            "working_hours_saturday_open": true,
+            "working_hours_saturday_close": true,
+            "working_hours_sunday_open": true,
+            "working_hours_sunday_close": true,
+            "region": true,
+            "city": true,
+            "postcode": true,
+            "instructions": true,
+            "latitude": true,
+            "longitude": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    }
+}

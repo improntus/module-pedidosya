@@ -21,10 +21,15 @@
   </table>
   <table name="improntus_pedidosya_token" resource="default" engine="innodb" comment="Pedidos Ya token data">
     <column xsi:type="int" name="entity_id" padding="11" unsigned="false" nullable="false" identity="true" comment="Entity Id"/>
-    <column xsi:type="varchar" name="token" nullable="false" length="255" comment="Token"/>
-    <column xsi:type="timestamp" name="lastest_use" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Lastest use"/>
+    <column xsi:type="int" name="store_id" padding="11" unsigned="false" nullable="false" identity="false" comment="Store Id"/>
+    <column xsi:type="varchar" name="token" nullable="false" length="255" comment="Access Token"/>
+    <column xsi:type="timestamp" name="latest_use" nullable="false" default="CURRENT_TIMESTAMP" comment="Latest use"/>
+    <column xsi:type="timestamp" name="lastest_use" disabled="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Lastest use"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
       <column name="entity_id"/>
+    </constraint>
+    <constraint xsi:type="unique" referenceId="improntus_pedidosya_store_id">
+      <column name="store_id"/>
     </constraint>
   </table>
   <table name="improntus_pedidosya_waypoint" resource="default" engine="innodb" comment="Pedidos Ya Waypoints">

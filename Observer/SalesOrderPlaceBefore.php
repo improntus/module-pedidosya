@@ -5,11 +5,12 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Checkout\Model\Session;
+use Improntus\PedidosYa\Model\Carrier\PedidosYa;
 
 /**
  * Class SalesOrderPlaceBefore
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Observer
  */
 class SalesOrderPlaceBefore implements ObserverInterface
@@ -31,8 +32,7 @@ class SalesOrderPlaceBefore implements ObserverInterface
     public function __construct(
         CartRepositoryInterface $quoteRepository,
         Session                 $checkoutSession
-    )
-    {
+    ) {
         $this->_quoteRepository = $quoteRepository;
         $this->_checkoutSession = $checkoutSession;
     }
@@ -45,9 +45,7 @@ class SalesOrderPlaceBefore implements ObserverInterface
     {
         $order = $observer->getEvent()->getOrder();
 
-        if($order->getShippingMethod() == \Improntus\PedidosYa\Model\Carrier\PedidosYa::CARRIER_CODE . '_'
-            . \Improntus\PedidosYa\Model\Carrier\PedidosYa::CARRIER_CODE)
-        {
+        if ($order->getShippingMethod() == PedidosYa::CARRIER_CODE . '_' . PedidosYa::CARRIER_CODE) {
             $order->setPedidosyaEstimatedata($this->_checkoutSession->getPedidosyaEstimatedata());
             $order->setPedidosyaSourceWaypoint($this->_checkoutSession->getPedidosyaSourceWaypoint());
         }

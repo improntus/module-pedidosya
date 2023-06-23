@@ -9,7 +9,7 @@ use Improntus\PedidosYa\Model\CreateShipment;
 /**
  * Class SalesOrderSaveAfter
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Observer
  */
 class SalesOrderSaveAfter implements ObserverInterface
@@ -44,9 +44,11 @@ class SalesOrderSaveAfter implements ObserverInterface
     {
         try {
             $order = $observer->getEvent()->getOrder();
-            if($this->_helper->getAutomaticShipment())
-                if($this->_createShipment->create(NULL, $order))
-            return $this;
+            if ($this->_helper->getAutomaticShipment()) {
+                if ($this->_createShipment->create(null, $order)) {
+                    return $this;
+                }
+            }
         } catch (\Exception $e) {
             $this->_helper->log($e->getMessage());
         }

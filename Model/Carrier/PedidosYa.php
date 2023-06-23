@@ -31,9 +31,7 @@ use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 /**
  * Class PedidosYa
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
- * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Model\Carrier
  */
 class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
@@ -102,7 +100,31 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
      */
     protected $timezone;
 
-
+    /**
+     * @param ScopeConfigInterface $scopeConfig
+     * @param ErrorFactory $rateErrorFactory
+     * @param LoggerInterface $logger
+     * @param Security $xmlSecurity
+     * @param ElementFactory $xmlElFactory
+     * @param ResultFactory $rateFactory
+     * @param MethodFactory $rateMethodFactory
+     * @param \Magento\Shipping\Model\Tracking\ResultFactory $trackFactory
+     * @param \Magento\Shipping\Model\Tracking\Result\ErrorFactory $trackErrorFactory
+     * @param StatusFactory $trackStatusFactory
+     * @param RegionFactory $regionFactory
+     * @param CountryFactory $countryFactory
+     * @param CurrencyFactory $currencyFactory
+     * @param Data $directoryData
+     * @param StockRegistryInterface $stockRegistry
+     * @param RequestInterface $request
+     * @param Webservice $webservice
+     * @param PedidosYaHelper $pedidosYaHelper
+     * @param Session $checkoutSession
+     * @param CartRepositoryInterface $quoteRepository
+     * @param DateTime $date
+     * @param TimezoneInterface $timezone
+     * @param array $data
+     */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         ErrorFactory $rateErrorFactory,
@@ -127,8 +149,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         DateTime                $date,
         TimezoneInterface       $timezone,
         array                   $data = []
-    )
-    {
+    ) {
         $this->_rateResultFactory = $rateFactory;
         $this->_rateMethodFactory = $rateMethodFactory;
         $this->_helper            = $pedidosYaHelper;
@@ -208,8 +229,9 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
      */
     public function collectRates(RateRequest $request)
     {
-        if (!$this->getConfigFlag('active'))
+        if (!$this->getConfigFlag('active')) {
             return false;
+        }
 
         $result = $this->_rateResultFactory->create();
         $method = $this->_rateMethodFactory->create();
@@ -229,14 +251,16 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         /**
          * Items
          */
-        foreach($request->getAllItems() as $_item) {
-            if($_item->getProductType() == 'configurable')
+        foreach ($request->getAllItems() as $_item) {
+            if ($_item->getProductType() == 'configurable') {
                 continue;
+            }
 
             $_product = $_item->getProduct();
 
-            if($_item->getParentItem())
+            if ($_item->getParentItem()) {
                 $_item = $_item->getParentItem();
+            }
 
             $volumeCode = $this->_helper->getVolumeAttribute() ? $this->_helper->getVolumeAttribute() : 'volume';
             $volume = (int) $_product->getResource()->getAttributeRawValue($_product->getId(), $volumeCode, $_product->getStoreId()) * $_item->getQty();
@@ -273,7 +297,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             return $result;
         }
 
-        if($totalWeight > (int)$helper->getMaxWeight()) {
+        if ($totalWeight > (int)$helper->getMaxWeight()) {
             $error = $this->_rateErrorFactory->create();
             $error->setCarrier($this->_code);
             $error->setCarrierTitle($this->getConfigData('title'));
@@ -285,26 +309,32 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         /**
          * Apply Free Shipping?
          */
-        $isFreeShipping = $helper->getFreeShipping() ? $request->getFreeShipping() : false;
+        $isFreeShipping = $helper->getFreeShipping() && $request->getFreeShipping();
 
-        if($request->getDestStreet() && $request->getDestPostcode()) {
+        if ($request->getDestStreet() && $request->getDestPostcode()) {
             /**
              * Start Log
              */
-            if($debugMode) $helper->log("=============== START LOG ===============");
+            if ($debugMode) {
+                $helper->log("=============== START LOG ===============");
+            }
 
             $waypointData['waypoints'][] = [
                 'addressStreet' => trim(preg_replace('/\n/', ' ', $request->getDestStreet())),
                 'city'          => $request->getDestCity()
             ];
 
-            if($debugMode) $helper->log(json_encode(["Waypoint Coverage Send Data: " => $waypointData],JSON_PRETTY_PRINT));
+            if ($debugMode) {
+                $helper->log(json_encode(["Waypoint Coverage Send Data: " => $waypointData], JSON_PRETTY_PRINT));
+            }
 
             $waypointCoverage = $this->_webservice->getEstimateCoverage($waypointData);
 
-            if($debugMode) $helper->log(json_encode(["Waypoint Coverage Get Data:" => $waypointCoverage],JSON_PRETTY_PRINT));
+            if ($debugMode) {
+                $helper->log(json_encode(["Waypoint Coverage Get Data:" => $waypointCoverage], JSON_PRETTY_PRINT));
+            }
 
-            if($waypointCoverage == false) {
+            if (!$waypointCoverage) {
                 $error = $this->_rateErrorFactory->create();
                 $error->setCarrier($this->_code);
                 $error->setCarrierTitle($this->getConfigData('title'));
@@ -313,18 +343,19 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 return $result;
             }
 
-            if(isset($waypointCoverage->waypoints[0])) {
-                if($waypointCoverage->waypoints[0]->status == 'NOT_FOUND') {
+            if (isset($waypointCoverage->waypoints[0])) {
+                if ($waypointCoverage->waypoints[0]->status == 'NOT_FOUND') {
                     $error = $this->_rateErrorFactory->create();
                     $error->setCarrier($this->_code);
                     $error->setCarrierTitle($this->getConfigData('title'));
                     $error->setErrorMessage(__('There are no shipping estimate for the address entered'));
-                $result->append($error);
-                return $result;
+                    $result->append($error);
+                    return $result;
                 }
             }
 
-            if (!isset($waypointCoverage->waypoints) || (isset($waypointCoverage->code) && $waypointCoverage->code == 'INVALID_TOKEN')) {
+            if (!isset($waypointCoverage->waypoints) || (isset($waypointCoverage->code)
+                    && $waypointCoverage->code == 'INVALID_TOKEN')) {
                 $error = $this->_rateErrorFactory->create();
                 $error->setCarrier($this->_code);
                 $error->setCarrierTitle($this->getConfigData('title'));
@@ -335,7 +366,9 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
 
             $closestSourceWaypoint = $this->_helper->getClosestSourceWaypoint($waypointCoverage);
 
-            if($debugMode) $helper->log(json_encode(["Closest Source Waypoint:" => $closestSourceWaypoint->getData()],JSON_PRETTY_PRINT));
+            if ($debugMode) {
+                $helper->log(json_encode(["Closest Source Waypoint:" => $closestSourceWaypoint->getData()], JSON_PRETTY_PRINT));
+            }
 
             $waypoints[] = [
                 "type"              => "PICK_UP",
@@ -375,24 +408,28 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                     "waypoints"     => $waypoints
                 ];
 
-            if($debugMode) $helper->log(json_encode(["Estimate Data:" => $estimatePriceData],JSON_PRETTY_PRINT));
+            if ($debugMode) {
+                $helper->log(json_encode(["Estimate Data:" => $estimatePriceData], JSON_PRETTY_PRINT));
+            }
 
             $shippingPrice = $webservice->getEstimatePrice($estimatePriceData);
 
-            if($debugMode) $helper->log(json_encode(["Shipping Price" => $shippingPrice],JSON_PRETTY_PRINT));
+            if ($debugMode) {
+                $helper->log(json_encode(["Shipping Price" => $shippingPrice], JSON_PRETTY_PRINT));
+            }
 
-            if($isFreeShipping == 1) {
+            if ($isFreeShipping == 1) {
                 $method->setPrice(0);
                 $method->setCost(0);
                 $result->append($method);
 
                 $this->_checkoutSession->setPedidosyaEstimatedata(json_encode($estimatePriceData));
                 $this->_checkoutSession->setPedidosyaSourceWaypoint($closestSourceWaypoint->getEntityId());
-            } elseif(isset($shippingPrice->price)) {
+            } elseif (isset($shippingPrice->price)) {
                 $price = $shippingPrice->price->total;
                 $assumeShippingPrice = $this->_helper->getAssumeShippingAmount();
                 $total = $price - $assumeShippingPrice;
-                if($total > 0) {
+                if ($total > 0) {
                     $method->setPrice($total);
                     $method->setCost($total);
                 } else {
@@ -414,7 +451,9 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             /**
              * End Log
              */
-            if($debugMode) $helper->log("=============== END LOG ===============");
+            if ($debugMode) {
+                $helper->log("=============== END LOG ===============");
+            }
         }
 
         return $result;
@@ -446,5 +485,4 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
     {
         return $this->_helper->getTrackingUrl($trackings);
     }
-
 }

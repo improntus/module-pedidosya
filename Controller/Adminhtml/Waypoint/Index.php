@@ -8,6 +8,12 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
 
+/**
+ * Class Index
+ * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @copyright Copyright (c) 2023 Improntus
+ * @package Improntus\PedidosYa\Controller\Adminhtml\Waypoint
+ */
 class Index extends Action
 {
     /**
@@ -40,6 +46,6 @@ class Index extends Action
      */
     protected function _isAllowed()
     {
-        return $this->_authorization->isAllowed('Improntus_PedidosYa::waypoint_index');
+        return $this->_authorization->isAllowed('Improntus_PedidosYa::waypoint');
     }
 }

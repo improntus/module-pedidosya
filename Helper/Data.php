@@ -3,7 +3,9 @@
 namespace Improntus\PedidosYa\Helper;
 
 use Improntus\PedidosYa\Model\Waypoint;
+use Magento\Framework\HTTP\ClientInterface;
 use Improntus\PedidosYa\Model\WaypointFactory;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -37,6 +39,26 @@ class Data extends AbstractHelper
     const PEDIDOSYA_ERROR_RIDER                     = 'not_rider_available';
     const PEDIDOSYA_DEFAULT_VALUES_COUNTRY          = ["AR" => 15000, "UY" => 100000, "CL" => 100000, "PA" => 500, "BO" => 1000, "DM" => 2000, "PY" => 1000000,
                                                        "VE" => 40, "PE" => 200, "EC" => 100, "GT" => 600, "CR" => 100000, "HN" => 2000, "SV" => 35, "NI" => 2500];
+
+    /**
+     * PeYa Auth Endpoint
+     */
+    const AUTH_ENDPOINT = "https://auth-api.pedidosya.com/%s/%s";
+
+    /**
+     * PeYa Endpoint
+     */
+    const API_ENDPOINT = "https://courier-api.pedidosya.com/%s/%s";
+
+    /**
+     * PeYa API Version
+     */
+    const API_VERSION = "v1";
+
+    /**
+     * PeYa Token Expiration in Minutes
+     */
+    const TOKEN_EXPIRATION = 45;
 
     /**
      * @var ScopeConfigInterface
@@ -92,7 +114,32 @@ class Data extends AbstractHelper
      */
     protected $timezone;
 
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
 
+    /**
+     * @var ClientInterface
+     */
+    protected $httpClient;
+
+    /**
+     * @param Context $context
+     * @param ScopeConfigInterface $scopeConfig
+     * @param TokenFactory $tokenFactory
+     * @param WaypointFactory $waypointFactory
+     * @param ShipmentNotifier $shipmentNotifier
+     * @param TrackFactory $trackFactory
+     * @param Order $convertOrder
+     * @param StatusFactory $trackStatusFactory
+     * @param ResultFactory $trackResultFactory
+     * @param PedidosYaFactory $pedidosYaFactory
+     * @param PedidosYaLogger $pedidosYaLogger
+     * @param TimezoneInterface $timezone
+     * @param StoreManagerInterface $storeManager
+     * @param ClientInterface $httpClient
+     */
     public function __construct(
         Context $context,
         ScopeConfigInterface $scopeConfig,
@@ -105,7 +152,9 @@ class Data extends AbstractHelper
         ResultFactory $trackResultFactory,
         PedidosYaFactory $pedidosYaFactory,
         PedidosYaLogger $pedidosYaLogger,
-        TimezoneInterface $timezone
+        TimezoneInterface $timezone,
+        StoreManagerInterface $storeManager,
+        ClientInterface $httpClient
     ) {
         $this->_scopeConfig         = $scopeConfig;
         $this->_tokenFactory        = $tokenFactory;
@@ -117,7 +166,9 @@ class Data extends AbstractHelper
         $this->_trackStatusFactory  = $trackStatusFactory;
         $this->_trackResultFactory  = $trackResultFactory;
         $this->_pedidosYaLogger     = $pedidosYaLogger;
-        $this->timezone = $timezone;
+        $this->timezone             = $timezone;
+        $this->storeManager         = $storeManager;
+        $this->httpClient           = $httpClient;
         parent::__construct($context);
     }
 
@@ -126,7 +177,11 @@ class Data extends AbstractHelper
      */
     public function getClientId()
     {
-        return $this->_scopeConfig->getValue('shipping/pedidosya/client_id', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'shipping/pedidosya/client_id',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -134,7 +189,11 @@ class Data extends AbstractHelper
      */
     public function getClientSecret()
     {
-        return $this->_scopeConfig->getValue('shipping/pedidosya/client_secret', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'shipping/pedidosya/client_secret',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -142,7 +201,11 @@ class Data extends AbstractHelper
      */
     public function getUsername()
     {
-        return $this->_scopeConfig->getValue('shipping/pedidosya/username', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'shipping/pedidosya/username',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -150,7 +213,11 @@ class Data extends AbstractHelper
      */
     public function getPassword()
     {
-        return $this->_scopeConfig->getValue('shipping/pedidosya/password', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'shipping/pedidosya/password',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -158,7 +225,11 @@ class Data extends AbstractHelper
      */
     public function getVolumeAttribute()
     {
-        return $this->_scopeConfig->getValue('carriers/pedidosya/product_volume_attribute', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'carriers/pedidosya/product_volume_attribute',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
 
@@ -167,7 +238,11 @@ class Data extends AbstractHelper
      */
     public function isActive()
     {
-        return (bool)$this->_scopeConfig->getValue('carriers/pedidosya/active', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->isSetFlag(
+            'carriers/pedidosya/active',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -175,7 +250,11 @@ class Data extends AbstractHelper
      */
     public function getAssumeShippingAmount()
     {
-        return (int)$this->_scopeConfig->getValue('carriers/pedidosya/assume_shipping_amount', ScopeInterface::SCOPE_STORE);
+        return (int)$this->_scopeConfig->getValue(
+            'carriers/pedidosya/assume_shipping_amount',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -183,7 +262,11 @@ class Data extends AbstractHelper
      */
     public function getMaxWeight()
     {
-        return (float)$this->_scopeConfig->getValue("carriers/pedidosya/max_package_weight", ScopeInterface::SCOPE_STORE);
+        return (float)$this->_scopeConfig->getValue(
+            "carriers/pedidosya/max_package_weight",
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -191,7 +274,11 @@ class Data extends AbstractHelper
      */
     public function getAutomaticShipment()
     {
-        return (bool)$this->_scopeConfig->getValue("carriers/pedidosya/automatic_shipment", ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->isSetFlag(
+            "carriers/pedidosya/automatic_shipment",
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -199,7 +286,11 @@ class Data extends AbstractHelper
      */
     public function getMode()
     {
-        return $this->_scopeConfig->getValue('carriers/pedidosya/mode', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'carriers/pedidosya/mode',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -207,7 +298,11 @@ class Data extends AbstractHelper
      */
     public function getCategory()
     {
-        return $this->_scopeConfig->getValue('carriers/pedidosya/category', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'carriers/pedidosya/category',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -215,7 +310,11 @@ class Data extends AbstractHelper
      */
     public function getPreparationTime()
     {
-        return (int)$this->_scopeConfig->getValue('carriers/pedidosya/preparation_time', ScopeInterface::SCOPE_STORE);
+        return (int)$this->_scopeConfig->getValue(
+            'carriers/pedidosya/preparation_time',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -223,7 +322,11 @@ class Data extends AbstractHelper
      */
     public function getStatusOrderAllowed()
     {
-        $statusOrderAllowed = $this->_scopeConfig->getValue('carriers/pedidosya/status_allowed', ScopeInterface::SCOPE_STORE);
+        $statusOrderAllowed = $this->_scopeConfig->getValue(
+            'carriers/pedidosya/status_allowed',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
         return explode(',', $statusOrderAllowed);
     }
 
@@ -232,7 +335,11 @@ class Data extends AbstractHelper
      */
     public function getTitle()
     {
-        return $this->_scopeConfig->getValue('carriers/pedidosya/title', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'carriers/pedidosya/title',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -240,7 +347,11 @@ class Data extends AbstractHelper
      */
     public function getFreeShipping()
     {
-        return $this->_scopeConfig->getValue('carriers/pedidosya/free_shipping', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'carriers/pedidosya/free_shipping',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -248,7 +359,11 @@ class Data extends AbstractHelper
      */
     public function getDefaultCountryAmount()
     {
-        return $this->_scopeConfig->getValue('carriers/pedidosya/country_max_amount_insured', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'carriers/pedidosya/country_max_amount_insured',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
     }
 
     /**
@@ -256,7 +371,20 @@ class Data extends AbstractHelper
      */
     public function getDebugMode()
     {
-        return (bool)$this->_scopeConfig->getValue('carriers/pedidosya/debug', ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->isSetFlag(
+            'carriers/pedidosya/debug',
+            ScopeInterface::SCOPE_STORE,
+            $this->getCurrentStoreId()
+        );
+    }
+
+    /**
+     * @return int
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getCurrentStoreId()
+    {
+        return $this->storeManager->getStore()->getStoreId();
     }
 
     /**
@@ -264,9 +392,14 @@ class Data extends AbstractHelper
      */
     public function saveToken($token)
     {
-        $tokenFactory = $this->_tokenFactory->create()->getCollection()->getFirstItem();
+        $storeId = $this->getCurrentStoreId();
+        $tokenFactory = $this->_tokenFactory->create()
+                             ->getCollection()
+                             ->addFieldToFilter('store_id', $storeId)
+                             ->getFirstItem();
+        $tokenFactory->setStoreId($this->getCurrentStoreId());
         $tokenFactory->setToken($token);
-        $tokenFactory->setLastestUse(date("Y-m-d H:i:s"));
+        $tokenFactory->setLatestUse(date("Y-m-d H:i:s"));
         $tokenFactory->save();
     }
 
@@ -275,81 +408,139 @@ class Data extends AbstractHelper
      */
     public function getToken()
     {
+        /**
+         * Get storeId
+         */
+        $storeId = $this->getCurrentStoreId();
+
+        /**
+         * Get Access Token
+         */
         $tokenFactory = $this->_tokenFactory->create();
-        $token = $tokenFactory->getCollection()->getFirstItem();
-
-        if(!$token->getToken())
-            return false;
-
-        $now = strtotime(date("Y-m-d H:i:s"));
-        $tokenExpiration = 45;
-        $difference = ($now- strtotime($token->getLastestUse()))/ 60;
-
-        if($difference > $tokenExpiration)
-            return false;
+        $token = $tokenFactory->getCollection()
+            ->addFieldToFilter('store_id', $storeId)
+            ->getFirstItem();
 
         /**
-         * I check if the token is valid
+         * Has Access Token?
          */
-        $curl = curl_init();
-        $url = "https://courier-api.pedidosya.com/v1/categories";
-        curl_setopt_array($curl,
+        if (!$token->getToken()) {
+            return false;
+        }
+
+        /**
+         * Check Expiration
+         */
+        $now = strtotime($this->timezone->date()->format("Y-m-d H:i:s"));
+        $difference = ($now - strtotime($token->getLatestUse()))/ 60;
+        if ($difference > self::TOKEN_EXPIRATION) {
+            return false;
+        }
+
+        /**
+         * set Access Token
+         */
+        $accessToken = $token->getToken();
+
+        /**
+         * This Request is only to validate that the access token is valid
+         */
+        if (!self::checkAccessToken($accessToken)) {
+            return false;
+        }
+
+        /**
+         * Update Latest Use
+         */
+        $token->setLatestUse($this->timezone->date()->format("Y-m-d H:i:s"));
+        $token->save();
+
+        /**
+         * Return Access Token
+         */
+        return $accessToken;
+    }
+
+    /**
+     * Allows to determine if the token is really valid for the API
+     * @param $token
+     * @return true
+     */
+    protected function checkAccessToken($token)
+    {
+        /**
+         * Get Endpoint
+         */
+        $WebServiceURL = $this->getWebServiceURL("categories");
+
+        /**
+         * Set Headers
+         */
+        $this->httpClient->setHeaders(
             [
-                CURLOPT_URL => $url,
-                CURLOPT_CUSTOMREQUEST => "GET",
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_HTTPHEADER => [
-                    "Authorization: {$token->getToken()}",
-                    "Content-Type: application/json"
-                ],
-            ]);
-
-        $response = curl_exec($curl);
-        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                "Authorization" => $token,
+                "Content-Type" => "application/json",
+                "Origin" => "Magento"
+            ]
+        );
 
         /**
-         * Check status request
+         * Send Request
          */
-        if(curl_error($curl)){
-            $this->log("ERROR: curl ".curl_error($curl));
-            return false;
-        } elseif($httpcode != 200) {
-            $response = json_decode($response);
-            $message = isset($response->messages) ? $response->messages[0] : "Unknown";
+        $this->httpClient->get($WebServiceURL);
+
+        /**
+         * Get Status Code
+         */
+        $httpCode = $this->httpClient->getStatus();
+
+        /**
+         * Decode Request
+         */
+        $WebServiceResponse = json_decode($this->httpClient->getBody()) ?: "";
+
+        /**
+         * Compare HTTP Code
+         */
+        if ($httpCode !== 200) {
+            $message = isset($WebServiceResponse->messages) ? $WebServiceResponse->messages[0] : "Unknown";
             $this->log("Error: {$message} - Invalid Access Token REFRESH");
             return false;
         }
 
-        $token->setLastestUse(date("Y-m-d H:i:s"));
-        $token->save();
-
-        return $token->getToken();
+        /**
+         * Return Access Token Valid
+         */
+        return true;
     }
 
     /**
      * @param $destWaypoint
      * @return mixed
      */
-    public function getClosestSourceWaypoint($destWaypoint) {
+    public function getClosestSourceWaypoint($destWaypoint)
+    {
         $waypointCollection = $this->_waypointFactory->create()->getCollection()->addFieldToFilter('enabled', 1);
         $closestSourceWaypoint = false;
         $minorDistance = 0;
 
         foreach ($waypointCollection as $_sourceWaypoint) {
             $theta = $destWaypoint->waypoints[0]->longitude - $_sourceWaypoint['longitude'];
-            $distance = (sin(deg2rad($destWaypoint->waypoints[0]->latitude)) * sin(deg2rad($_sourceWaypoint['latitude']))) + (cos(deg2rad($destWaypoint->waypoints[0]->latitude)) * cos(deg2rad($_sourceWaypoint['latitude'])) * cos(deg2rad($theta)));
+            $distance = (sin(deg2rad($destWaypoint->waypoints[0]->latitude)) *
+                            sin(deg2rad($_sourceWaypoint['latitude']))) +
+                                (cos(deg2rad($destWaypoint->waypoints[0]->latitude)) *
+                                    cos(deg2rad($_sourceWaypoint['latitude'])) * cos(deg2rad($theta)));
             $distance = acos($distance);
             $distance = rad2deg($distance);
             $distance = $distance * 60 * 1.1515;
             $distance = $distance * 1.609344;
 
-            $tmpDistance = round($distance,2);
+            $tmpDistance = round($distance, 2);
 
-            if($closestSourceWaypoint == false) {
+            if ($closestSourceWaypoint == false) {
                 $closestSourceWaypoint = $_sourceWaypoint;
                 $minorDistance = $tmpDistance;
-            } elseif($minorDistance > $tmpDistance) {
+            } elseif ($minorDistance > $tmpDistance) {
                 $closestSourceWaypoint = $_sourceWaypoint;
                 $minorDistance = $tmpDistance;
             }
@@ -367,14 +558,14 @@ class Data extends AbstractHelper
         if ($order->canShip()) {
             $orderShipment = $this->_convertOrder->toShipment($order);
 
-            foreach ($order->getAllItems() AS $orderItem) {
-                 if (!$orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
+            foreach ($order->getAllItems() as $orderItem) {
+                if (!$orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
                     continue;
-                 }
+                }
 
-                 $qty = $orderItem->getQtyToShip();
-                 $shipmentItem = $this->_convertOrder->itemToShipmentItem($orderItem)->setQty($qty);
-                 $orderShipment->addItem($shipmentItem);
+                $qty = $orderItem->getQtyToShip();
+                $shipmentItem = $this->_convertOrder->itemToShipmentItem($orderItem)->setQty($qty);
+                $orderShipment->addItem($shipmentItem);
             }
             $orderShipment->register();
             $orderShipment->getOrder()->setIsInProcess(true);
@@ -382,7 +573,6 @@ class Data extends AbstractHelper
         } else {
             $this->createTracking($order, $pedidosYa);
         }
-
     }
 
     /**
@@ -391,10 +581,10 @@ class Data extends AbstractHelper
      * @param null $orderShipment
      * @throws MailException
      */
-    public function createTracking($order, $pedidosYa, $orderShipment = NULL)
+    public function createTracking($order, $pedidosYa, $orderShipment = null)
     {
         $pedidosYaConfirmedData = json_decode($pedidosYa->getInfoConfirmed());
-        if(!$orderShipment) {
+        if (!$orderShipment) {
             $orderShipment = $this->_trackFactory->create()->getCollection()
                 ->addFieldToFilter('order_id', ['eq' => $order->getEntityId()])
                 ->getFirstItem();
@@ -418,10 +608,10 @@ class Data extends AbstractHelper
      * @param $waypointId
      * @return Waypoint
      */
-    public function getWaypointById($waypointId) {
+    public function getWaypointById($waypointId)
+    {
         return $this->_waypointFactory->create()->load($waypointId);
     }
-
 
     /**
      * @param $tracking
@@ -433,7 +623,7 @@ class Data extends AbstractHelper
             ->getCollection()
             ->addFieldToFilter('track_number', $tracking);
 
-        if($track->getFirstItem()) {
+        if ($track->getFirstItem()) {
             $pedidosYa = $this->_pedidosYaFactory->create()
                 ->getCollection()
                 ->addFieldToFilter('order_id', ['eq' => $track->getFirstItem()->getOrderId()])
@@ -480,7 +670,7 @@ class Data extends AbstractHelper
         $date = \DateTime::createFromFormat('Y-m-d\TH:i:s\Z', $deliveryTime);
         $deliveryHour = $date->format('H');
 
-        if($openHour < $deliveryHour && $openHour < $closeHour) {
+        if ($openHour < $deliveryHour && $openHour < $closeHour) {
             return true;
         }
         return false;
@@ -493,5 +683,27 @@ class Data extends AbstractHelper
     {
         $this->_pedidosYaLogger->error($message);
     }
-}
 
+    /**
+     * getWebServiceURL
+     * Return WebService URL
+     * @return string
+     */
+    public function getWebServiceURL($endpoint, $authEndpoint = false){
+        /**
+         * Auth or API?
+         */
+        $WebserviceURL = $authEndpoint ? self::AUTH_ENDPOINT : self::API_ENDPOINT;
+
+        /**
+         * Return WebService URL
+         */
+        return vsprintf(
+            $WebserviceURL,
+            [
+                self::API_VERSION,
+                $endpoint
+            ]
+        );
+    }
+}

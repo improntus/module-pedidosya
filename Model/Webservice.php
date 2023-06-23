@@ -7,7 +7,7 @@ use Improntus\PedidosYa\Helper\Data as HelperPedidosYa;
 /**
  * Class Webservice
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Model
  */
 class Webservice
@@ -47,15 +47,15 @@ class Webservice
      */
     public function __construct(
         HelperPedidosYa $helperPedidosYa
-    )
-    {
+    ) {
+        /**
+         * @todo: Replace CURL With Magento\Framework\HTTP\ClientInterface
+         */
         $this->_helper = $helperPedidosYa;
-
         $this->_clientId = $helperPedidosYa->getClientId();
         $this->_clientSecret = $helperPedidosYa->getClientSecret();
         $this->_username = $helperPedidosYa->getUsername();
         $this->_password = $helperPedidosYa->getPassword();
-
         $this->login();
     }
 
@@ -64,38 +64,60 @@ class Webservice
      */
     public function login()
     {
-        if($token = $this->_helper->getToken()) {
+        /**
+         * Get Access Token
+         */
+        if ($token = $this->_helper->getToken()) {
             $this->_accessToken = $token;
         } else {
+            /**
+             * Init Curl
+             */
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
             $curl = curl_init();
-            curl_setopt_array($curl,
+
+            /**
+             * Prepare Data & Send Request
+             */
+            $WebserviceURL = $this->_helper->getWebServiceURL("token?client_id={$this->_clientId}&client_secret={$this->_clientSecret}&password={$this->_password}&username={$this->_username}&grant_type=password",true);
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
+            curl_setopt_array(
+                $curl,
                 [
-                    CURLOPT_URL => "https://auth-api.pedidosya.com/v1/token?client_id={$this->_clientId}&client_secret={$this->_clientSecret}&grant_type=password&password={$this->_password}&username={$this->_username}",
+                    CURLOPT_URL => $WebserviceURL,
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => "",
                     CURLOPT_MAXREDIRS => 10,
                     CURLOPT_TIMEOUT => 30,
                     CURLOPT_CUSTOMREQUEST => "POST",
-                ]);
-
+                ]
+            );
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
             $response = curl_exec($curl);
 
-            if(curl_error($curl)) {
-                $error = 'An error occurred while generating the token: '. curl_error($curl);
-                $this->_helper->log($error);
+            /**
+             * Has Error?
+             */
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
+            if ($error = curl_error($curl)) {
+                $this->_helper->log("An error occurred while generating the token: $error");
                 return false;
             }
 
+            /**
+             * Decode Response
+             */
             $response = json_decode($response);
 
-            if(isset($response->access_token)) {
+            /**
+             * Has Access Token?
+             */
+            if (isset($response->access_token)) {
                 $this->_accessToken = $response->access_token;
                 $this->_helper->saveToken($response->access_token);
             } else {
                 $this->_accessToken = null;
                 return false;
             }
-
         }
         return true;
     }
@@ -106,10 +128,20 @@ class Webservice
      */
     public function getEstimatePrice($estimatePriceData)
     {
+        /**
+         * Init Curl
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $curl = curl_init();
+
+        /**
+         * Prepare Data & Send Request
+         */
         $jsonData = json_encode($estimatePriceData);
-        $url = "https://courier-api.pedidosya.com/v1/estimates/shippings";
-        curl_setopt_array($curl,
+        $url = $this->_helper->getWebServiceURL("estimates/shippings");
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        curl_setopt_array(
+            $curl,
             [
                 CURLOPT_URL => $url,
                 CURLOPT_POST => 1,
@@ -121,20 +153,34 @@ class Webservice
                     "Content-Type: application/json",
                     "Origin: Magento"
                 ],
-            ]);
-
+            ]
+        );
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $response = curl_exec($curl);
-        $responseObject = json_decode($response);
-        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        if($httpcode != 200) {
+        /**
+         * Decode Response
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        $responseObject = json_decode($response);
+
+        /**
+         * Get HTTP Code
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        if ($httpcode != 200) {
             $response = json_decode($response);
             $this->_helper->log('Error Webservice:');
-            if(isset($response->message))
+            if (isset($response->message)) {
                 $this->_helper->log($response->message);
+            }
         }
 
-        if(isset($responseObject->price->total)) {
+        /**
+         * Has Price?
+         */
+        if (isset($responseObject->price->total)) {
             return $responseObject;
         } else {
             return false;
@@ -146,9 +192,19 @@ class Webservice
      */
     public function getCategories()
     {
+        /**
+         * Init Curl
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $curl = curl_init();
-        $url = "https://courier-api.pedidosya.com/v1/categories";
-            curl_setopt_array($curl,
+
+        /**
+         * Send Request
+         */
+        $url = $this->_helper->getWebServiceURL("categories");
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        curl_setopt_array(
+            $curl,
             [
                 CURLOPT_URL => $url,
                 CURLOPT_CUSTOMREQUEST => "GET",
@@ -159,22 +215,36 @@ class Webservice
                     "Content-Type: application/json",
                     "Origin: Magento"
                 ],
-            ]);
-
+            ]
+        );
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $response = curl_exec($curl);
+
+        /**
+         * Get HTTP Code
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        if(curl_error($curl))
-        {
-            $error = 'There was an error requesting a estimate price: '. curl_error($curl);
-            $this->_helper->log('Error:');
-            $this->_helper->log($error);
-
+        /**
+         * Has Error?
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        if ($error = curl_error($curl)) {
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
+            $this->_helper->log("ERROR: there was an error requesting an estimate price: $error");
             return false;
-        } elseif($httpcode != 200) {
-            $response = json_decode($response);
-            $this->_helper->log('Error:');
-            $this->_helper->log($response->messages[0]);
+        }
+
+        /**
+         * Compare http code
+         */
+        if ($httpcode != 200) {
+            $response = json_decode($response) ?: [];
+            if (isset($response->messages)) {
+                $this->_helper->log('Error:');
+                $this->_helper->log($response->messages[0]);
+            }
             return false;
         }
 
@@ -187,10 +257,20 @@ class Webservice
      */
     public function createShipping($data)
     {
+        /**
+         * Init Curl
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $curl = curl_init();
+
+        /**
+         * Prepare Data & Send Request
+         */
         $jsonData = json_encode($data);
-        $url = "https://courier-api.pedidosya.com/v1/shippings";
-        curl_setopt_array($curl,
+        $url = $this->_helper->getWebServiceURL("shippings");
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        curl_setopt_array(
+            $curl,
             [
                 CURLOPT_URL => $url,
                 CURLOPT_POST => 1,
@@ -202,19 +282,39 @@ class Webservice
                     "Content-Type: application/json",
                     "Origin: Magento"
                 ],
-            ]);
-
+            ]
+        );
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $response = curl_exec($curl);
+
+        /**
+         * Decode Response
+         */
         $responseObject = json_decode($response);
+
+        /**
+         * Get HTTP Code
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        if($httpcode != 200) {
-            if($httpcode == 400) {
-                $this->_helper->log("Error WebService: " .$responseObject->message);
+        /**
+         * Compare HTTP Code
+         */
+        if ($httpcode != 200) {
+            /**
+             * 400 Web Service ERROR
+             */
+            if ($httpcode == 400) {
+                $this->_helper->log("Error WebService: {$responseObject->message}");
                 return $responseObject;
             }
-            $error = 'There was an error in createShipping method: '. curl_error($curl);
-            $this->_helper->log("Error WebService: " .$error);
+
+            /**
+             * Other error
+             */
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
+            $this->_helper->log("Error WebService: There was an error in createShipping method: ". curl_error($curl));
         }
 
         return $responseObject;
@@ -226,10 +326,20 @@ class Webservice
      */
     public function confirmShipping($data)
     {
+        /**
+         * Init Curl
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $curl = curl_init();
+
+        /**
+         * Prepare Data & Send Request
+         */
         $confirmData['id'] = $data->id;
-        $url = "https://courier-api.pedidosya.com/v1/shippings/{$confirmData['id']}/confirm";
-        curl_setopt_array($curl,
+        $url = $this->_helper->getWebServiceURL("shippings/{$data->id}/confirm");
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        curl_setopt_array(
+            $curl,
             [
                 CURLOPT_URL => $url,
                 CURLOPT_POST => 1,
@@ -241,37 +351,42 @@ class Webservice
                     "Content-Type: application/json",
                     "Origin: Magento"
                 ],
-            ]);
-
+            ]
+        );
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $response = curl_exec($curl);
+
+        /**
+         * Decode Response
+         */
         $responseObject = json_decode($response);
+
+        /**
+         * Get HTTP Code
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        if($httpcode != 200) {
-            if($httpcode == 400) {
-                $this->_helper->log("Error WebService: " .$responseObject->message);
+        /**
+         * Compare HTTP Code
+         */
+        if ($httpcode != 200) {
+            /**
+             * 400 Web Service ERROR
+             */
+            if ($httpcode == 400) {
+                $this->_helper->log("Error WebService: {$responseObject->message}");
                 return $responseObject;
             }
-            $error = 'There was an error in confirmShipping method: '. curl_error($curl);
-            $this->_helper->log("Error WebService: " .$error);
+
+            /**
+             * Other Error
+             */
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
+            $this->_helper->log("Error WebService - There was an error in confirmShipping method:" . curl_error($curl));
         }
 
         return $responseObject;
-
-        /**if(curl_error($curl))
-        {
-            $error = 'There was an error in confirmShipping method: '. curl_error($curl);
-            $this->_helper->log('Error WebService:');
-            $this->_helper->log($error);
-
-            return false;
-        }
-
-        if(isset($responseObject->price)) {
-            return $responseObject;
-        } else {
-            return false;
-        }*/
     }
 
     /**
@@ -280,13 +395,24 @@ class Webservice
      */
     public function getEstimateCoverage($waypointData)
     {
+        /**
+         * Init Curl
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $curl = curl_init();
+
+        /**
+         * Encode Waypoint Data
+         */
         $jsonData = json_encode($waypointData);
 
-        $mapRequired = 'false';
-        $mapRequired = 'mapRequired='.$mapRequired;
-        $url = "https://courier-api.pedidosya.com/v1/estimates/coverage?{$mapRequired}";
-        curl_setopt_array($curl,
+        /**
+         * Send Request
+         */
+        $url = $this->_helper->getWebServiceURL("estimates/coverage?mapRequired=false");
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        curl_setopt_array(
+            $curl,
             [
                 CURLOPT_URL => $url,
                 CURLOPT_POST => 1,
@@ -298,30 +424,42 @@ class Webservice
                     "Content-Type: application/json",
                     "Origin: Magento"
                 ],
-            ]);
-
+            ]
+        );
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $response = curl_exec($curl);
+
+        /**
+         * Decode Response
+         */
         $responseObject = json_decode($response);
+
+        /**
+         * Get HTTP Code
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        if($httpcode != 200) {
-            if($httpcode == 400) {
-                $this->_helper->log("Error WebService: " .$responseObject->message);
+        /**
+         * Compare HTTP Code
+         */
+        if ($httpcode != 200) {
+            /**
+             * 400 Web Service ERROR
+             */
+            if ($httpcode == 400) {
+                $this->_helper->log("Error WebService: {$responseObject->message}");
                 return $responseObject;
             }
-            $error = 'There was an error in getEstimateCoverage method: '. curl_error($curl);
-            $this->_helper->log("Error WebService: " .$error);
+
+            /**
+             * Other Error
+             */
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
+            $this->_helper->log("Error WS There was an error in getEstimateCoverage method: " . curl_error($curl));
         }
 
         return $responseObject;
-
-        /**
-        if(curl_error($curl)) {
-            $error = 'Error WebService: There was an error in getEstimateCoverage method: '. curl_error($curl);
-            $this->_helper->log($error);
-            return false;
-        }
-        return json_decode($response);*/
     }
 
     /**
@@ -331,11 +469,20 @@ class Webservice
      */
     public function cancelShippingOrder($id, $reason)
     {
+        /**
+         * Init Curl
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $curl = curl_init();
-        $url = "https://courier-api.pedidosya.com/v1/shippings/{$id}/cancel";
-        $reason = json_encode($reason);
 
-        curl_setopt_array($curl,
+        /**
+         * Prepare Data & Send Request
+         */
+        $url = $this->_helper->getWebServiceURL("shippings/{$id}/cancel");
+        $reason = json_encode($reason);
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        curl_setopt_array(
+            $curl,
             [
                 CURLOPT_URL => $url,
                 CURLOPT_POST => 1,
@@ -347,19 +494,39 @@ class Webservice
                     "Content-Type: application/json",
                     "Origin: Magento"
                 ],
-            ]);
-
+            ]
+        );
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $response = curl_exec($curl);
+
+        /**
+         * Decode Response
+         */
         $responseObject = json_decode($response);
+
+        /**
+         * Get HTTP Code
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        if($httpcode != 200) {
-            if($httpcode == 400) {
-                $this->_helper->log("Error WebService: " .$responseObject->message);
+        /**
+         * Compare HTTP Code
+         */
+        if ($httpcode != 200) {
+            /**
+             * 400 Web Service ERROR
+             */
+            if ($httpcode == 400) {
+                $this->_helper->log("Error WebService: {$responseObject->message}");
                 return $responseObject;
             }
-            $error = 'There was an error in confirmShipping method: '. curl_error($curl);
-            $this->_helper->log("Error WebService: " .$error);
+
+            /**
+             * Other Error
+             */
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
+            $this->_helper->log("Error WS There was an error in confirmShipping method: " . curl_error($curl));
         }
 
         return $responseObject;
@@ -371,10 +538,19 @@ class Webservice
      */
     public function getShippingOrderDetails($id)
     {
+        /**
+         * Init Curl
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $curl = curl_init();
-        $url = "https://courier-api.pedidosya.com/v1/shippings/{$id}";
 
-        curl_setopt_array($curl,
+        /**
+         * Prepare Data & Send Request
+         */
+        $url = $this->_helper->getWebServiceURL("shippings/{$id}");
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        curl_setopt_array(
+            $curl,
             [
                 CURLOPT_URL => $url,
                 CURLOPT_CUSTOMREQUEST => "GET",
@@ -385,19 +561,39 @@ class Webservice
                     "Content-Type: application/json",
                     "Origin: Magento"
                 ],
-            ]);
-
+            ]
+        );
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $response = curl_exec($curl);
+
+        /**
+         * Decode Response
+         */
         $responseObject = json_decode($response);
+
+        /**
+         * Get HTTP Code
+         */
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        if($httpcode != 200) {
-            if($httpcode == 400) {
-                $this->_helper->log("Error WebService: " .$responseObject->message);
+        /**
+         * Compare HTTP Code
+         */
+        if ($httpcode != 200) {
+            /**
+             * 400 Web Service ERROR
+             */
+            if ($httpcode == 400) {
+                $this->_helper->log("Error WebService: {$responseObject->message}");
                 return $responseObject;
             }
-            $error = 'There was an error in getShippingOrderDetails method: '. curl_error($curl);
-            $this->_helper->log("Error WebService: " .$error);
+
+            /**
+             * Other Error
+             */
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction
+            $this->_helper->log("Error WS There was an error in getShippingOrderDetails method: " . curl_error($curl));
         }
 
         return $responseObject;

@@ -8,3 +8,9 @@ CHANGELOG
 ### 1.0.26
 ### 1.0.27
 - Details in System.xml
+
+### 1.0.28
+- Add Multi-store Support
+- Update Module ACL
+- Update Configurations
+- Update Webservice

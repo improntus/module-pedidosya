@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../Magento/Backend/etc/menu.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
         <add id="Improntus_PedidosYa::menuPrincipal"
              title="Pedidos Ya"
              translate="title"
              module="Magento_Config"
              sortOrder="100"
-             resource="Magento_Config::brand"/>
+             resource="Improntus_PedidosYa::menu"/>
         <add id="Improntus_PedidosYa::settings"
              title="Configuration"
              translate="title"
              module="Improntus_PedidosYa"
              parent="Improntus_PedidosYa::menuPrincipal"
-             action="adminhtml/system_config/edit/section/shipping/webservice_pedidosya"
+             action="adminhtml/system_config/edit/section/shipping/shipping_pedidosya"
              resource="Improntus_PedidosYa::settings"
              sortOrder="200"/>
         <add id="Improntus_PedidosYa::carriers"
@@ -20,7 +20,7 @@
              translate="title"
              module="Improntus_PedidosYa"
              parent="Improntus_PedidosYa::menuPrincipal"
-             action="adminhtml/system_config/edit/section/carriers/pedidosya_bicicleta"
+             action="adminhtml/system_config/edit/section/carriers/carriers_pedidosya"
              resource="Improntus_PedidosYa::carriers"
              sortOrder="300"/>
         <add id="Improntus_PedidosYa::waypoint"
@@ -30,6 +30,6 @@
              sortOrder="400"
              parent="Improntus_PedidosYa::menuPrincipal"
              action="pedidosya/waypoint"
-             resource="Improntus_PedidosYa::waypoint"/>
+             resource="Improntus_PedidosYa::waypoints"/>
     </menu>
 </config>

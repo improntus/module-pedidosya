@@ -1,12 +1,24 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
-    <acl>
-        <resources>
-            <resource id="Magento_Backend::admin">
-                <resource id="Magento_Backend::content">
-                    <resource id="Improntus_PedidosYa::waypoint" title="Waypoints" sortOrder="100"/>
+<acl>
+    <resources>
+        <resource id="Magento_Backend::admin">
+            <resource id="Improntus_PedidosYa::pedidosya" title="PedidosYa" sortOrder="10">
+                <resource id="Improntus_PedidosYa::menu" title="Menu" sortOrder="0">
+                    <resource id="Improntus_PedidosYa::waypoints" title="Waypoints" sortOrder="10">
+                        <resource id="Improntus_PedidosYa::waypoint_create" title="Create" sortOrder="10"/>
+                        <resource id="Improntus_PedidosYa::waypoint_edit" title="Edit" sortOrder="20"/>
+                        <resource id="Improntus_PedidosYa::waypoint_delete" title="Delete" sortOrder="30" />
+                    </resource>
+                    <resource id="Improntus_PedidosYa::settings" title="Credentials" sortOrder="20"/>
+                    <resource id="Improntus_PedidosYa::carriers" title="Delivery Method" sortOrder="30"/>
+                </resource>
+                <resource id="Improntus_PedidosYa::shipment" title="Shipment" sortOrder="10">
+                    <resource id="Improntus_PedidosYa::shipment_create" title="Create" sortOrder="10"/>
+                    <resource id="Improntus_PedidosYa::shipment_cancel" title="Cancel" sortOrder="20" />
                 </resource>
             </resource>
-        </resources>
-    </acl>
+        </resource>
+    </resources>
+</acl>
 </config>

@@ -15,7 +15,7 @@ use Magento\Store\Model\System\Store;
 /**
  * Class Form
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Block\Adminhtml\Waypoint\Edit
  */
 class Form extends Generic
@@ -50,8 +50,7 @@ class Form extends Generic
         Yesno $options,
         TimeOption $timeOptions,
         array $data = []
-    )
-    {
+    ) {
         $this->_options     = $options;
         $this->_timeOptions = $timeOptions;
         parent::__construct($context, $registry, $formFactory, $data);
@@ -82,7 +81,6 @@ class Form extends Generic
                 ['legend' =>'', 'class' => 'fieldset-wide']
             );
             $fieldset->addField('entity_id', 'hidden', ['name' => 'entity_id']);
-
         } else {
             $fieldset = $form->addFieldset(
                 'base_fieldset',
@@ -188,6 +186,32 @@ class Form extends Generic
                 'id' => 'postcode',
                 'title' => __('Postcode'),
                 'class' => 'required-entry validate-numbers',
+                'required' => true
+            ]
+        );
+
+        $fieldset->addField(
+            'latitude',
+            'text',
+            [
+                'name' => 'latitude',
+                'label' => __('Latitude'),
+                'id' => 'latitude',
+                'title' => __('Latitude'),
+                'class' => 'required-entry',
+                'required' => true
+            ]
+        );
+
+        $fieldset->addField(
+            'longitude',
+            'text',
+            [
+                'name' => 'longitude',
+                'label' => __('Longitude'),
+                'id' => 'longitude',
+                'title' => __('Longitude'),
+                'class' => 'required-entry',
                 'required' => true
             ]
         );
@@ -388,34 +412,9 @@ class Form extends Generic
             ]
         );
 
-        $fieldset->addField(
-            'latitude',
-            'text',
-            [
-                'name' => 'latitude',
-                'label' => __('Latitud (coordenada de google maps)'),
-                'id' => 'latitude',
-                'title' => __('Latitud (coordenada de google maps)'),
-                'class' => 'required-entry',
-                'required' => true
-            ]
-        );
-
-        $fieldset->addField(
-            'longitude',
-            'text',
-            [
-                'name' => 'longitude',
-                'label' => __('Longitud (coordenada de google maps)'),
-                'id' => 'longitude',
-                'title' => __('Longitud (coordenada de google maps)'),
-                'class' => 'required-entry',
-                'required' => true
-            ]
-        );
-
-        if ($model instanceof Waypoint && $model->getEntityId())
+        if ($model instanceof Waypoint && $model->getEntityId()) {
             $form->setValues($model->getData());
+        }
 
         $form->setUseContainer(true);
         $this->setForm($form);

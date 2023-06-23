@@ -77,10 +77,6 @@
                     <label>Debug Mode</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="category" translate="label" type="select" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Category</label>
-                    <source_model>Improntus\PedidosYa\Model\Config\Source\CategoryOption</source_model>
-                </field>
                 <field id="product_volume_attribute" translate="label" type="select" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Volume attribute code</label>
                     <source_model>Improntus\PedidosYa\Model\Config\Source\CatalogProductOption</source_model>
@@ -96,7 +92,6 @@
                     <comment>When order change to one of this selected status, shipment will be generated automatically</comment>
                 </field>
             </group>
-
         </section>
     </system>
 </config>

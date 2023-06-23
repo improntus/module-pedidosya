@@ -9,7 +9,7 @@ use Magento\Framework\Registry;
 /**
  * Class Container
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Block\Adminhtml\Waypoint\Edit
  */
 class Container extends \Magento\Backend\Block\Widget\Form\Container
@@ -28,8 +28,7 @@ class Container extends \Magento\Backend\Block\Widget\Form\Container
         Context $context,
         Registry $registry,
         array $data = []
-    )
-    {
+    ) {
         $this->_coreRegistry = $registry;
         parent::__construct($context, $data);
     }
@@ -40,15 +39,17 @@ class Container extends \Magento\Backend\Block\Widget\Form\Container
         $this->_controller = 'adminhtml_waypoint';
         parent::_construct();
 
-        if ($this->_isAllowedAction('Improntus_PedidosYa::waypoint_save'))
+        if ($this->_isAllowedAction('Improntus_PedidosYa::waypoint_edit')) {
             $this->buttonList->update('save', 'label', __('Save'));
-        else
+        } else {
             $this->buttonList->remove('save');
+        }
 
-        if ($this->_isAllowedAction('Improntus_PedidosYa::waypoint_delete'))
+        if ($this->_isAllowedAction('Improntus_PedidosYa::waypoint_delete')) {
             $this->buttonList->update('delete', 'label', __('Delete'));
-        else
+        } else {
             $this->buttonList->remove('delete');
+        }
 
         $this->buttonList->remove('reset');
     }
@@ -75,8 +76,9 @@ class Container extends \Magento\Backend\Block\Widget\Form\Container
      */
     public function getFormActionUrl()
     {
-        if ($this->hasFormActionUrl())
+        if ($this->hasFormActionUrl()) {
             return $this->getData('form_action_url');
+        }
 
         return $this->getUrl('*/*/save');
     }

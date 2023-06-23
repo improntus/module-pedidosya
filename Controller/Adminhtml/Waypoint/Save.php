@@ -9,7 +9,7 @@ use Magento\Framework\Filesystem;
 /**
  * Class Save
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Controller\Adminhtml\Waypoint
  */
 class Save extends \Magento\Backend\App\Action
@@ -75,6 +75,6 @@ class Save extends \Magento\Backend\App\Action
      */
     protected function _isAllowed()
     {
-        return $this->_authorization->isAllowed('Improntus_PedidosYa::waypoint_save');
+        return $this->_authorization->isAllowed('Improntus_PedidosYa::waypoint_edit');
     }
 }
