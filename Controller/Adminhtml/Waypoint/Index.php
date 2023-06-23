@@ -46,6 +46,6 @@ class Index extends Action
      */
     protected function _isAllowed()
     {
-        return $this->_authorization->isAllowed('Improntus_PedidosYa::waypoint');
+        return $this->_authorization->isAllowed('Improntus_PedidosYa::waypoints');
     }
 }
