@@ -11,6 +11,7 @@ use Magento\Sales\Model\OrderRepository;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Improntus\PedidosYa\Helper\Data as PedidosYaHelper;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 
 /**
  * Class CreateShipment
@@ -66,15 +67,10 @@ class CreateShipment
     protected $_messageManager;
 
     /**
-     * @param Context $context
-     * @param PedidosYaFactory $pedidosYaFactory
-     * @param OrderRepository $orderRepository
-     * @param Webservice $webservice
-     * @param ScopeConfigInterface $scopeConfigInterface
-     * @param PedidosYaHelper $pedidosYaHelper
-     * @param ManagerInterface $manager
-     * @param DateTime $date
+     * @var TimezoneInterface $timezone
      */
+    protected $timezone;
+
     public function __construct(
         Context $context,
         PedidosYaFactory $pedidosYaFactory,
@@ -83,7 +79,8 @@ class CreateShipment
         ScopeConfigInterface $scopeConfigInterface,
         PedidosYaHelper $pedidosYaHelper,
         ManagerInterface $manager,
-        DateTime $date
+        DateTime $date,
+        TimezoneInterface $timezone
     )
     {
         $this->_pedidosYaFactory    = $pedidosYaFactory;
@@ -94,6 +91,7 @@ class CreateShipment
         $this->_pedidosYaHelper     = $pedidosYaHelper;
         $this->_date                = $date;
         $this->_messageManager      = $manager;
+        $this->timezone             = $timezone;
     }
 
     /**
@@ -143,8 +141,12 @@ class CreateShipment
                             }
 
                             if(isset($data->deliveryTime)) {
+                                // Get Preapration Time
                                 $preparationTime = $this->_pedidosYaHelper->getPreparationTime();
-                                $data->deliveryTime = gmdate('Y-m-d\TH:i:s\Z', strtotime(date('Y-m-d\TH:i:s\Z') . '+'. $preparationTime . ' minutes'));
+                                // Get current date and times based on store timezone
+                                $currentDateTime = $this->timezone->date()->format('Y-m-d\TH:i:s\Z');
+                                // Add Preparation Time to Current Date
+                                $data->deliveryTime = $this->_date->date('Y-m-d\TH:i:s\Z', strtotime("{$currentDateTime} + {$preparationTime} minutes"));
                             }
                             $data->waypoints[0]->phone = preg_replace("/[^0-9]/", "", $data->waypoints[0]->phone);
                             $data->waypoints[1]->phone = preg_replace("/[^0-9]/", "", $order->getShippingAddress()->getTelephone());
@@ -156,7 +158,7 @@ class CreateShipment
                                 /**
                                  * Create Shipping
                                  */
-                                $createShippingResult = $this->_webservice->createShipping($data);
+                                $createShippingResult = $this->_webservice->createShipping($data,$order->getStoreId());
 
                                 /**
                                  * Check PYa Shipping Response
@@ -165,17 +167,17 @@ class CreateShipment
                                     $pedidosYa->setInfoPreorder(json_encode($createShippingResult));
                                     $pedidosYa->save();
 
-                                    $confirmShippingResult = $this->_webservice->confirmShipping($createShippingResult);
+                                    $confirmShippingResult = $this->_webservice->confirmShipping($createShippingResult,$order->getStoreId());
 
                                     if(isset($confirmShippingResult->confirmationCode)) {
                                         $pedidosYa->setInfoConfirmed(json_encode($confirmShippingResult));
                                         $pedidosYa->save();
-                                        $order->addStatusHistoryComment("Pedidos Ya Confirmation Code: " . $confirmShippingResult->confirmationCode);
+                                        $order->addStatusHistoryComment("PedidosYa Confirmation Code: {$confirmShippingResult->confirmationCode}");
                                     } else {
                                         $pedidosYa->setStatus('pedidosya_error');
                                         $pedidosYa->save();
                                         $errorMessage = $createShippingResult->message ?? $createShippingResult->code;
-                                        $order->addStatusHistoryComment("Pedidos Ya Confirm Order ERROR: $errorMessage");
+                                        $order->addStatusHistoryComment("PedidosYa Confirm Order ERROR: $errorMessage");
                                         $this->_pedidosYaHelper->log($createShippingResult);
                                         return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS;
                                     }
@@ -188,7 +190,7 @@ class CreateShipment
                                 } else {
                                     $this->_pedidosYaHelper->log(json_encode($createShippingResult,JSON_PRETTY_PRINT));
                                     $errorMessage = $createShippingResult->message ?? $createShippingResult->code;
-                                    $order->addStatusHistoryComment("Pedidos Ya Pre order ERROR: $errorMessage");
+                                    $order->addStatusHistoryComment("PedidosYa Pre Order ERROR: $errorMessage");
                                     $order->save();
                                     return $errorMessage;
                                 }

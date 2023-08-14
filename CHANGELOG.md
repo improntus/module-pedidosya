@@ -14,3 +14,6 @@ CHANGELOG
 - Update Module ACL
 - Update Configurations
 - Update Webservice
+
+### 1.0.29
+- Improvements multi-store Support

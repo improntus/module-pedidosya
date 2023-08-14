@@ -175,60 +175,60 @@ class Data extends AbstractHelper
     /**
      * @return string
      */
-    public function getClientId()
+    public function getClientId($storeId = null)
     {
         return $this->_scopeConfig->getValue(
             'shipping/pedidosya/client_id',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?: $this->getCurrentStoreId()
         );
     }
 
     /**
      * @return string
      */
-    public function getClientSecret()
+    public function getClientSecret($storeId = null)
     {
         return $this->_scopeConfig->getValue(
             'shipping/pedidosya/client_secret',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?: $this->getCurrentStoreId()
         );
     }
 
     /**
      * @return string
      */
-    public function getUsername()
+    public function getUsername($storeId = null)
     {
         return $this->_scopeConfig->getValue(
             'shipping/pedidosya/username',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?: $this->getCurrentStoreId()
         );
     }
 
     /**
      * @return string
      */
-    public function getPassword()
+    public function getPassword($storeId = null)
     {
         return $this->_scopeConfig->getValue(
             'shipping/pedidosya/password',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?: $this->getCurrentStoreId()
         );
     }
 
     /**
      * @return string
      */
-    public function getVolumeAttribute()
+    public function getVolumeAttribute($storeId = null)
     {
         return $this->_scopeConfig->getValue(
             'carriers/pedidosya/product_volume_attribute',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?: $this->getCurrentStoreId()
         );
     }
 
@@ -236,96 +236,96 @@ class Data extends AbstractHelper
     /**
      * @return bool
      */
-    public function isActive()
+    public function isActive($storeId = null)
     {
         return $this->_scopeConfig->isSetFlag(
             'carriers/pedidosya/active',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
     /**
      * @return int
      */
-    public function getAssumeShippingAmount()
+    public function getAssumeShippingAmount($storeId = null)
     {
         return (int)$this->_scopeConfig->getValue(
             'carriers/pedidosya/assume_shipping_amount',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
     /**
      * @return float
      */
-    public function getMaxWeight()
+    public function getMaxWeight($storeId = null)
     {
         return (float)$this->_scopeConfig->getValue(
             "carriers/pedidosya/max_package_weight",
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
     /**
      * @return bool
      */
-    public function getAutomaticShipment()
+    public function getAutomaticShipment($storeId = null)
     {
         return $this->_scopeConfig->isSetFlag(
             "carriers/pedidosya/automatic_shipment",
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
     /**
      * @return string
      */
-    public function getMode()
+    public function getMode($storeId = null)
     {
         return $this->_scopeConfig->getValue(
             'carriers/pedidosya/mode',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
     /**
      * @return string
      */
-    public function getCategory()
+    public function getCategory($storeId = null)
     {
         return $this->_scopeConfig->getValue(
             'carriers/pedidosya/category',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
     /**
      * @return int
      */
-    public function getPreparationTime()
+    public function getPreparationTime($storeId = null)
     {
         return (int)$this->_scopeConfig->getValue(
             'carriers/pedidosya/preparation_time',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
     /**
      * @return false|string[]
      */
-    public function getStatusOrderAllowed()
+    public function getStatusOrderAllowed($storeId = null)
     {
         $statusOrderAllowed = $this->_scopeConfig->getValue(
             'carriers/pedidosya/status_allowed',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
         return explode(',', $statusOrderAllowed);
     }
@@ -333,48 +333,48 @@ class Data extends AbstractHelper
     /**
      * @return string
      */
-    public function getTitle()
+    public function getTitle($storeId = null)
     {
         return $this->_scopeConfig->getValue(
             'carriers/pedidosya/title',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
     /**
      * @return boolean
      */
-    public function getFreeShipping()
+    public function getFreeShipping($storeId = null)
     {
         return $this->_scopeConfig->getValue(
             'carriers/pedidosya/free_shipping',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
     /**
      * @return string
      */
-    public function getDefaultCountryAmount()
+    public function getDefaultCountryAmount($storeId = null)
     {
         return $this->_scopeConfig->getValue(
             'carriers/pedidosya/country_max_amount_insured',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
     /**
      * @return bool
      */
-    public function getDebugMode()
+    public function getDebugMode($storeId = null)
     {
         return $this->_scopeConfig->isSetFlag(
             'carriers/pedidosya/debug',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?:$this->getCurrentStoreId()
         );
     }
 
@@ -390,28 +390,28 @@ class Data extends AbstractHelper
     /**
      * @param $token
      */
-    public function saveToken($token)
+    public function saveToken($token, $storeId = null)
     {
-        $storeId = $this->getCurrentStoreId();
+        $storeId = $storeId ?:$this->getCurrentStoreId();
         $tokenFactory = $this->_tokenFactory->create()
                              ->getCollection()
                              ->addFieldToFilter('store_id', $storeId)
                              ->getFirstItem();
-        $tokenFactory->setStoreId($this->getCurrentStoreId());
+        $tokenFactory->setStoreId($storeId);
         $tokenFactory->setToken($token);
-        $tokenFactory->setLatestUse(date("Y-m-d H:i:s"));
+        $tokenFactory->setLatestUse($this->timezone->date()->format("Y-m-d H:i:s"));
         $tokenFactory->save();
     }
 
     /**
      * @return false
      */
-    public function getToken()
+    public function getToken($storeId = null)
     {
         /**
          * Get storeId
          */
-        $storeId = $this->getCurrentStoreId();
+        $storeId = $storeId?: $this->getCurrentStoreId();
 
         /**
          * Get Access Token

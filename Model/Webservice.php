@@ -52,24 +52,27 @@ class Webservice
          * @todo: Replace CURL With Magento\Framework\HTTP\ClientInterface
          */
         $this->_helper = $helperPedidosYa;
-        $this->_clientId = $helperPedidosYa->getClientId();
-        $this->_clientSecret = $helperPedidosYa->getClientSecret();
-        $this->_username = $helperPedidosYa->getUsername();
-        $this->_password = $helperPedidosYa->getPassword();
-        $this->login();
     }
 
     /**
      * @return bool
      */
-    public function login()
+    public function login($storeId = null)
     {
         /**
          * Get Access Token
          */
-        if ($token = $this->_helper->getToken()) {
+        if ($token = $this->_helper->getToken($storeId)) {
             $this->_accessToken = $token;
         } else {
+            /**
+             *   Get Credentials
+             */
+            $this->_clientId = $this->_helper->getClientId($storeId);
+            $this->_clientSecret = $this->_helper->getClientSecret($storeId);
+            $this->_username = $this->_helper->getUsername($storeId);
+            $this->_password = $this->_helper->getPassword($storeId);
+
             /**
              * Init Curl
              */
@@ -113,7 +116,7 @@ class Webservice
              */
             if (isset($response->access_token)) {
                 $this->_accessToken = $response->access_token;
-                $this->_helper->saveToken($response->access_token);
+                $this->_helper->saveToken($response->access_token,$storeId);
             } else {
                 $this->_accessToken = null;
                 return false;
@@ -128,6 +131,11 @@ class Webservice
      */
     public function getEstimatePrice($estimatePriceData)
     {
+        /**
+         *  Get AccessToken
+         */
+        $this->login();
+
         /**
          * Init Curl
          */
@@ -193,6 +201,11 @@ class Webservice
     public function getCategories()
     {
         /**
+         *  Get AccessToken
+         */
+        $this->login();
+
+        /**
          * Init Curl
          */
         // phpcs:ignore Magento2.Functions.DiscouragedFunction
@@ -255,8 +268,13 @@ class Webservice
      * @param $data
      * @return false|mixed
      */
-    public function createShipping($data)
+    public function createShipping($data,$storeId =null)
     {
+        /**
+         *  Get AccessToken
+         */
+        $this->login($storeId);
+
         /**
          * Init Curl
          */
@@ -268,6 +286,7 @@ class Webservice
          */
         $jsonData = json_encode($data);
         $url = $this->_helper->getWebServiceURL("shippings");
+
         // phpcs:ignore Magento2.Functions.DiscouragedFunction
         curl_setopt_array(
             $curl,
@@ -324,8 +343,13 @@ class Webservice
      * @param $data
      * @return false|mixed
      */
-    public function confirmShipping($data)
+    public function confirmShipping($data, $storeId = null)
     {
+        /**
+         *  Get AccessToken
+         */
+        $this->login($storeId);
+
         /**
          * Init Curl
          */
@@ -395,6 +419,11 @@ class Webservice
      */
     public function getEstimateCoverage($waypointData)
     {
+        /**
+         *  Get AccessToken
+         */
+        $this->login();
+
         /**
          * Init Curl
          */
@@ -467,8 +496,13 @@ class Webservice
      * @param $reason
      * @return false|mixed
      */
-    public function cancelShippingOrder($id, $reason)
+    public function cancelShippingOrder($id, $reason, $storeId = null)
     {
+        /**
+         *  Get AccessToken
+         */
+        $this->login($storeId);
+
         /**
          * Init Curl
          */
@@ -538,6 +572,11 @@ class Webservice
      */
     public function getShippingOrderDetails($id)
     {
+        /**
+         *  Get AccessToken
+         */
+        $this->login();
+
         /**
          * Init Curl
          */

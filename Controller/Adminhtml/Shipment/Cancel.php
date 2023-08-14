@@ -123,8 +123,8 @@ class Cancel extends Action
                         if($infoPedidosYa->status == 'CONFIRMED') {
                             $webservice = $this->_webservice;
                             $shipment = $order->getShipmentsCollection()->getFirstItem();
-                            $reason = ['reasonText' => 'Cancelled'];
-                            $cancelData = $webservice->cancelShippingOrder($pedidosYaShippingId, $reason);
+                            $reason = ['reasonText' => 'Canceled by the store'];
+                            $cancelData = $webservice->cancelShippingOrder($pedidosYaShippingId, $reason,$order->getStoreId());
 
                             if(isset($cancelData->status)) {
                                 if($cancelData->status == 'CANCELLED') {
