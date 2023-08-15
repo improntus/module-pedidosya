@@ -144,9 +144,9 @@ class CreateShipment
                                 // Get Preapration Time
                                 $preparationTime = $this->_pedidosYaHelper->getPreparationTime();
                                 // Get current date and times based on store timezone
-                                $currentDateTime = $this->timezone->date()->format('Y-m-d\TH:i:s\Z');
+                                $currentDateTime = date('Y-m-d\TH:i:s\Z');
                                 // Add Preparation Time to Current Date
-                                $data->deliveryTime = $this->_date->date('Y-m-d\TH:i:s\Z', strtotime("{$currentDateTime} + {$preparationTime} minutes"));
+                                $data->deliveryTime = gmdate('Y-m-d\TH:i:s\Z', strtotime("{$currentDateTime} + {$preparationTime} minutes"));
                             }
                             $data->waypoints[0]->phone = preg_replace("/[^0-9]/", "", $data->waypoints[0]->phone);
                             $data->waypoints[1]->phone = preg_replace("/[^0-9]/", "", $order->getShippingAddress()->getTelephone());
