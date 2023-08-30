@@ -1,7 +1,8 @@
-# Pedidos Ya module - Magento 2
+<img src="./view/frontend/web/images/PeYaLogo.svg" align="left"> <p style="padding-top: 10px"> - Oficial Module - Magento 2</p>
+<hr>
 
 ## Description
-Official module [Pedidos Ya](https://www.pedidosya.com.ar/) for Magento 2. The module was developed using Pedidos Ya API documentation [API Docs](https://developers.pedidosya.com/courier-api).
+Official module [PedidosYa](https://www.pedidosya.com.ar/) for Magento 2. The module was developed using Pedidos Ya API documentation [API Docs](https://developers.pedidosya.com/courier-api).
 
 ### Installation
 The module requires Magento 2.0.x or higher for its correct operation. It will need to be installed using the Magento console commands.
