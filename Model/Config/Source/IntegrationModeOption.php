@@ -2,25 +2,23 @@
 
 namespace Improntus\PedidosYa\Model\Config\Source;
 
-use Magento\Framework\Option\ArrayInterface;
+use Magento\Framework\Data\OptionSourceInterface;
 
 /**
- * Class ModeOption
+ * Class IntegrationModeOption
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
  * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Model\Config\Source
  */
-class ModeOption implements ArrayInterface
+class IntegrationModeOption implements OptionSourceInterface
 {
-    /**
-     * @return array|array[]
-     */
+
     public function toOptionArray()
     {
         return [
-            ['value' => 'testing', 'label' => __('Testing')],
-            ['value' => 'production', 'label' => __('Production')]
+            ['label' => '-- Select --', 'value' => ''],
+            ['label' => 'API', 'value' => 1],
+            ['label' => 'E-commerce', 'value' => 0],
         ];
     }
 }
-

@@ -11,7 +11,7 @@ use Magento\Framework\Registry;
 /**
  * Class PedidosYa
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Model
  */
 class PedidosYa extends AbstractModel

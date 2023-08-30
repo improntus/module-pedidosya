@@ -1,5 +1,4 @@
 <?php
-
 namespace Improntus\PedidosYa\Model;
 
 use Magento\Framework\Data\Collection\AbstractDb;
@@ -10,8 +9,8 @@ use Magento\Framework\Registry;
 
 /**
  * Class Waypoint
- * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @author Improntus Dev Team
+ * @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
  * @package Improntus\PedidosYa\Model
  */
 class Waypoint extends AbstractModel

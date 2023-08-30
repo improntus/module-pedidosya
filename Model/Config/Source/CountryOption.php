@@ -7,7 +7,7 @@ use Magento\Framework\Option\ArrayInterface;
 /**
  * Class ModeOption
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Model\Config\Source
  */
 class CountryOption implements ArrayInterface

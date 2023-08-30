@@ -1,13 +1,13 @@
 <?php
-
 namespace Improntus\PedidosYa\Model;
 
 use Improntus\PedidosYa\Helper\Data as HelperPedidosYa;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * Class Webservice
- * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2023 Improntus
+ * @author Improntus Dev Team
+ * @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
  * @package Improntus\PedidosYa\Model
  */
 class Webservice
@@ -38,12 +38,18 @@ class Webservice
     protected $_helper;
 
     /**
+     * @var bool
+     */
+    protected $_integrationMode;
+
+    /**
      * @var string
      */
     private $_accessToken;
 
     /**
      * @param HelperPedidosYa $helperPedidosYa
+     * @throws NoSuchEntityException
      */
     public function __construct(
         HelperPedidosYa $helperPedidosYa
@@ -52,16 +58,44 @@ class Webservice
          * @todo: Replace CURL With Magento\Framework\HTTP\ClientInterface
          */
         $this->_helper = $helperPedidosYa;
+        $this->_integrationMode = $helperPedidosYa->getIntegrationMode();
+
+        /**
+         * Determinate auth mode.
+         * API (Recommended)
+         * E-commerce (Legacy)
+         */
+        if ($this->_integrationMode) {
+            $this->_accessToken = $helperPedidosYa->getApiToken();
+        } else {
+            $this->_clientId = $helperPedidosYa->getClientId();
+            $this->_clientSecret = $helperPedidosYa->getClientSecret();
+            $this->_username = $helperPedidosYa->getUsername();
+            $this->_password = $helperPedidosYa->getPassword();
+            $this->login();
+        }
+    }
+
+    public function login($storeId = null)
+    {
+        // Get AccessToken
+        if ($this->_helper->getIntegrationMode()) {
+            // API Mode
+            $this->_accessToken = $this->_helper->getApiToken($storeId);
+        } else {
+            // E-commerce Mode
+            $this->loginEcommerce($storeId);
+        }
     }
 
     /**
-     * @return bool
+     * Login using Legacy Mode
+     * @param $storeId
+     * @return false|void
      */
-    public function login($storeId = null)
+    private function loginEcommerce($storeId)
     {
-        /**
-         * Get Access Token
-         */
+        // Is there any token?
         if ($token = $this->_helper->getToken($storeId)) {
             $this->_accessToken = $token;
         } else {
@@ -82,7 +116,7 @@ class Webservice
             /**
              * Prepare Data & Send Request
              */
-            $WebserviceURL = $this->_helper->getWebServiceURL("token?client_id={$this->_clientId}&client_secret={$this->_clientSecret}&password={$this->_password}&username={$this->_username}&grant_type=password",true);
+            $WebserviceURL = $this->_helper->getWebServiceURL("token?client_id={$this->_clientId}&client_secret={$this->_clientSecret}&password={$this->_password}&username={$this->_username}&grant_type=password", true);
             // phpcs:ignore Magento2.Functions.DiscouragedFunction
             curl_setopt_array(
                 $curl,
@@ -116,14 +150,14 @@ class Webservice
              */
             if (isset($response->access_token)) {
                 $this->_accessToken = $response->access_token;
-                $this->_helper->saveToken($response->access_token,$storeId);
+                $this->_helper->saveToken($response->access_token, $storeId);
             } else {
                 $this->_accessToken = null;
                 return false;
             }
         }
-        return true;
     }
+
 
     /**
      * @param $estimatePriceData
@@ -146,7 +180,13 @@ class Webservice
          * Prepare Data & Send Request
          */
         $jsonData = json_encode($estimatePriceData);
-        $url = $this->_helper->getWebServiceURL("estimates/shippings");
+
+        /**
+         * Get Endpoint depend Integration Mode
+         */
+        $endpoint = $this->_integrationMode ? "shippings/estimates" : "estimates/shippings";
+
+        $url = $this->_helper->getWebServiceURL($endpoint);
         // phpcs:ignore Magento2.Functions.DiscouragedFunction
         curl_setopt_array(
             $curl,
@@ -188,10 +228,10 @@ class Webservice
         /**
          * Has Price?
          */
-        if (isset($responseObject->price->total)) {
+        if ($this->_integrationMode && isset($responseObject->deliveryOffers[0]->pricing->total)) {
             return $responseObject;
         } else {
-            return false;
+            return isset($responseObject->price->total) ? $responseObject : false;
         }
     }
 
@@ -268,7 +308,7 @@ class Webservice
      * @param $data
      * @return false|mixed
      */
-    public function createShipping($data,$storeId =null)
+    public function createShipping($data, $storeId = null)
     {
         /**
          *  Get AccessToken
