@@ -244,7 +244,6 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         $helper = $this->_helper;
         $webservice = $this->_webservice;
         $debugMode = $helper->getDebugMode();
-        $integrationMode = $helper->getIntegrationMode();
         $itemsWspedidosYa = [];
         $totalPrice = 0;
         $totalVolume = 0;
@@ -280,7 +279,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 'description'   => $_item->getName(),
                 'quantity'      => $quantity,
                 'volume'        => $volume,
-                'weight'        => $_product->getWeight() * 1000 * $_item->getQty(),
+                'weight'        => "0.1"//$_product->getWeight() * 1000 * $_item->getQty(),
             ];
         }
 

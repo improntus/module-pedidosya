@@ -172,8 +172,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @return mixed
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return string
      */
     public function getIntegrationMode($storeId = null)
     {
@@ -235,7 +234,7 @@ class Data extends AbstractHelper
         return $this->_scopeConfig->getValue(
             'shipping/pedidosya/ecommerce/password',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?: $this->getCurrentStoreId()
         );
     }
 
@@ -476,7 +475,7 @@ class Data extends AbstractHelper
         /**
          * This Request is only to validate that the access token is valid
          */
-        if (!self::checkAccessToken($accessToken)) {
+        if (!$this->checkAccessToken($accessToken)) {
             return false;
         }
 

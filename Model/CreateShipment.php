@@ -174,7 +174,7 @@ class CreateShipment
                                     $pedidosYa->setInfoPreorder(json_encode($createShippingResult));
                                     $pedidosYa->save();
 
-                                    if ($this->_pedidosYaHelper->getIntegrationMode()) {
+                                    if ($this->_pedidosYaHelper->getIntegrationMode($order->getStoreId())) {
                                         // API MODE
                                         $confirmShippingResult = $createShippingResult;
                                     } else {
