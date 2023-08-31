@@ -58,28 +58,15 @@ class Webservice
          * @todo: Replace CURL With Magento\Framework\HTTP\ClientInterface
          */
         $this->_helper = $helperPedidosYa;
-        $this->_integrationMode = $helperPedidosYa->getIntegrationMode();
-
-        /**
-         * Determinate auth mode.
-         * API (Recommended)
-         * E-commerce (Legacy)
-         */
-        if ($this->_integrationMode) {
-            $this->_accessToken = $helperPedidosYa->getApiToken();
-        } else {
-            $this->_clientId = $helperPedidosYa->getClientId();
-            $this->_clientSecret = $helperPedidosYa->getClientSecret();
-            $this->_username = $helperPedidosYa->getUsername();
-            $this->_password = $helperPedidosYa->getPassword();
-            $this->login();
-        }
     }
 
     public function login($storeId = null)
     {
+        // Get Integration Mode
+        $this->_integrationMode = $this->_helper->getIntegrationMode($storeId);
+
         // Get AccessToken
-        if ($this->_helper->getIntegrationMode()) {
+        if ($this->_helper->getIntegrationMode($storeId)) {
             // API Mode
             $this->_accessToken = $this->_helper->getApiToken($storeId);
         } else {

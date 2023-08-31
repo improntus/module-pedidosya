@@ -175,13 +175,13 @@ class Data extends AbstractHelper
      * @return mixed
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getIntegrationMode()
+    public function getIntegrationMode($storeId = null)
     {
         // Get Integration Mode
         $integrationMode = $this->_scopeConfig->isSetFlag(
             'shipping/pedidosya/integration_mode',
             ScopeInterface::SCOPE_STORE,
-            $this->getCurrentStoreId()
+            $storeId ?: $this->getCurrentStoreId()
         );
 
         // Update API Version
