@@ -100,7 +100,7 @@ class Create extends Action
                     $this->messageManager->addErrorMessage(__("An error occurred trying to generate the shipment PedidosYa: %1", $response));
                 }
             } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment PedidosYa: %s',$e->getMessage()));
+                $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment PedidosYa: %s', $e->getMessage()));
                 $this->_pedidosYaHelper->log($e->getMessage());
             }
         }

@@ -595,12 +595,10 @@ class Data extends AbstractHelper
     {
         if ($order->canShip()) {
             $orderShipment = $this->_convertOrder->toShipment($order);
-
             foreach ($order->getAllItems() as $orderItem) {
                 if (!$orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
                     continue;
                 }
-
                 $qty = $orderItem->getQtyToShip();
                 $shipmentItem = $this->_convertOrder->itemToShipmentItem($orderItem)->setQty($qty);
                 $orderShipment->addItem($shipmentItem);
@@ -640,7 +638,7 @@ class Data extends AbstractHelper
             )->save();
             $orderShipment->save();
             $orderShipment->getOrder()->save();
-            $this->_shipmentNotifier->notify($orderShipment);
+            //$this->_shipmentNotifier->notify($orderShipment);
         }
     }
 
@@ -745,7 +743,7 @@ class Data extends AbstractHelper
         $apiVersion = $this->apiVersion;
 
         /**
-         * TODO TEMPORAL?
+         * TODO
          * If the endpoint is estimates/coverage, it forces to use version 1 since
          * we require the coordinates of the client's address to determine the nearest Waypoint
          */
