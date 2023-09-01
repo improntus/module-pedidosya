@@ -1,4 +1,4 @@
-<img src="./view/frontend/web/images/PeYaLogo.svg" align="left"> <p style="padding-top: 10px"> - Oficial Module - Magento 2</p>
+<img src="./view/frontend/web/images/PeYaLogo.svg" align="left"> <p> - Oficial Module - Magento 2</p>
 <hr>
 
 ## Description
