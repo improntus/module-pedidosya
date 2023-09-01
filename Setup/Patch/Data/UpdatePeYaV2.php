@@ -106,7 +106,7 @@ class UpdatePeYaV2 implements DataPatchInterface
         }
 
         // Set integration Mode E-commerce (Legacy)
-        $this->writer->save('shipping/pedidosya/integration_mode', 0);
+        $this->writer->save('shipping/pedidosya/integration_mode', 'eco');
 
         /**
          * Remove Old Data

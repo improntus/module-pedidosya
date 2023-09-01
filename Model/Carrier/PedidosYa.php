@@ -235,7 +235,6 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
 
         $result = $this->_rateResultFactory->create();
         $method = $this->_rateMethodFactory->create();
-
         $method->setCarrier($this->_code);
         $method->setCarrierTitle($this->getConfigData('title'));
         $method->setMethod($this->_code);
@@ -265,7 +264,6 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             $volumeCode = $this->_helper->getVolumeAttribute() ? $this->_helper->getVolumeAttribute() : 'volume';
             $volume = (int) $_product->getResource()->getAttributeRawValue($_product->getId(), $volumeCode, $_product->getStoreId()) * $_item->getQty();
             $totalVolume += $volume;
-
             $totalPrice += $_product->getFinalPrice();
 
             /**
@@ -273,13 +271,18 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
              * PedidosYa requires integers
              */
             $quantity = ceil($_item->getQty());
+            $itemWeight = (float)$_product->getWeight();
+            if (is_null($_product->getWeight())) {
+                $itemWeight = 0.1; // 100 Grs
+            }
 
+            // Add Item
             $itemsWspedidosYa[] = [
                 'value'         => $_item->getPrice(),
                 'description'   => $_item->getName(),
                 'quantity'      => $quantity,
                 'volume'        => $volume,
-                'weight'        => "0.1"//$_product->getWeight() * 1000 * $_item->getQty(),
+                'weight'        => $itemWeight * $_item->getQty(),
             ];
         }
 
@@ -317,6 +320,8 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
              */
             if ($debugMode) {
                 $helper->log("=============== START LOG ===============");
+                $integrationModeLog = $helper->getIntegrationMode();
+                $helper->log("== INTEGRATION MODE: $integrationModeLog ==");
             }
 
             $waypointData['waypoints'][] = [

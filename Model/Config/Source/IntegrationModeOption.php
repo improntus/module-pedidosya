@@ -16,9 +16,9 @@ class IntegrationModeOption implements OptionSourceInterface
     public function toOptionArray()
     {
         return [
-            ['label' => '-- Select --', 'value' => ''],
-            ['label' => 'API', 'value' => 1],
-            ['label' => 'E-commerce', 'value' => 0],
+            ['label' => '-- Select --', 'value' => 0],
+            ['label' => 'API', 'value' => 'api'],
+            ['label' => 'E-commerce', 'value' => 'eco'],
         ];
     }
 }

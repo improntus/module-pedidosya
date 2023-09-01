@@ -17,7 +17,6 @@
                     <label>API</label>
                     <field id="token" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Token</label>
-                        <validate>required-entry</validate>
                         <comment>Data provided by PedidosYa</comment>
                     </field>
                 </group>
@@ -25,22 +24,18 @@
                     <label>E-commerce</label>
                     <field id="client_id" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Client ID</label>
-                        <validate>required-entry</validate>
                         <comment>Data provided by PedidosYa</comment>
                     </field>
                     <field id="client_secret" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Client Secret</label>
-                        <validate>required-entry</validate>
                         <comment>Data provided by PedidosYa</comment>
                     </field>
                     <field id="username" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Username</label>
-                        <validate>required-entry</validate>
                         <comment>Data provided by PedidosYa</comment>
                     </field>
                     <field id="password" translate="label" type="password" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Password</label>
-                        <validate>required-entry</validate>
                         <comment>Data provided by PedidosYa</comment>
                     </field>
                 </group>

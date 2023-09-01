@@ -177,14 +177,22 @@ class Data extends AbstractHelper
     public function getIntegrationMode($storeId = null)
     {
         // Get Integration Mode
-        $integrationMode = $this->_scopeConfig->isSetFlag(
+        $integrationMode = $this->_scopeConfig->getValue(
             'shipping/pedidosya/integration_mode',
             ScopeInterface::SCOPE_STORE,
             $storeId ?: $this->getCurrentStoreId()
         );
 
         // Update API Version
-        $this->apiVersion = $integrationMode ? 'v3' : 'v1';
+        switch ($integrationMode) {
+            case "api":
+                $this->apiVersion = 'v3';
+                break;
+            case "eco":
+            default:
+                $this->apiVersion = 'v1';
+                break;
+        }
 
         // Return Integration Mode
         return $integrationMode;
@@ -427,7 +435,7 @@ class Data extends AbstractHelper
                              ->getCollection()
                              ->addFieldToFilter('store_id', $storeId)
                              ->getFirstItem();
-        $tokenFactory->setStoreId($storeId);
+        //$tokenFactory->setStoreId($storeId);
         $tokenFactory->setToken($token);
         $tokenFactory->setLatestUse($this->timezone->date()->format("Y-m-d H:i:s"));
         $tokenFactory->save();

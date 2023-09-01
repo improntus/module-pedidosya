@@ -2,7 +2,6 @@
 namespace Improntus\PedidosYa\Model;
 
 use Improntus\PedidosYa\Helper\Data as HelperPedidosYa;
-use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * Class Webservice
@@ -49,7 +48,6 @@ class Webservice
 
     /**
      * @param HelperPedidosYa $helperPedidosYa
-     * @throws NoSuchEntityException
      */
     public function __construct(
         HelperPedidosYa $helperPedidosYa
@@ -65,13 +63,19 @@ class Webservice
         // Get Integration Mode
         $this->_integrationMode = $this->_helper->getIntegrationMode($storeId);
 
-        // Get AccessToken
-        if ($this->_helper->getIntegrationMode($storeId)) {
-            // API Mode
-            $this->_accessToken = $this->_helper->getApiToken($storeId);
-        } else {
-            // E-commerce Mode
-            $this->loginEcommerce($storeId);
+        /**
+         * Determine Integration Mode
+         */
+        switch ($this->_integrationMode) {
+            case "api":
+                // API
+                $this->_accessToken = $this->_helper->getApiToken($storeId);
+                break;
+            case "eco":
+            default:
+                // E-COMMERCE
+                $this->loginEcommerce($storeId);
+                break;
         }
     }
 
@@ -171,7 +175,15 @@ class Webservice
         /**
          * Get Endpoint depend Integration Mode
          */
-        $endpoint = $this->_integrationMode ? "shippings/estimates" : "estimates/shippings";
+        switch ($this->_integrationMode) {
+            case "api":
+                $endpoint = "shippings/estimates";
+                break;
+            case "eco":
+            default:
+                $endpoint =  "estimates/shippings";
+                break;
+        }
 
         $url = $this->_helper->getWebServiceURL($endpoint);
         // phpcs:ignore Magento2.Functions.DiscouragedFunction
@@ -215,7 +227,7 @@ class Webservice
         /**
          * Has Price?
          */
-        if ($this->_integrationMode && isset($responseObject->deliveryOffers[0]->pricing->total)) {
+        if ($this->_integrationMode == "api" && isset($responseObject->deliveryOffers[0]->pricing->total)) {
             return $responseObject;
         } else {
             return isset($responseObject->price->total) ? $responseObject : false;

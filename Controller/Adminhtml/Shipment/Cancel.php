@@ -112,12 +112,19 @@ class Cancel extends Action
                     $infoPedidosYa = json_decode($pedidosYa->getInfoConfirmed());
                     $confirmationCode = $infoPedidosYa->confirmationCode ?? '';
 
-                    if($this->_pedidosYaHelper->getIntegrationMode()){
-                        // API MODE
-                        $pedidosYaShippingId = $infoPedidosYa->shippingId ?? '';
-                    } else {
-                        // E-COMMERCE MODE
-                        $pedidosYaShippingId = $infoPedidosYa->id ?? '';
+                    /**
+                     * Determine Integration Mode
+                     */
+                    switch ($this->_pedidosYaHelper->getIntegrationMode($order->getStoreId())) {
+                        case "api":
+                            // API
+                            $pedidosYaShippingId = $infoPedidosYa->shippingId ?? '';
+                            break;
+                        case "eco":
+                        default:
+                            // E-COMMERCE
+                            $pedidosYaShippingId = $infoPedidosYa->id ?? '';
+                            break;
                     }
 
                     if ($order instanceof Order && $pedidosYaShippingId && $confirmationCode) {

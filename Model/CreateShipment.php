@@ -42,11 +42,6 @@ class CreateShipment
     protected $_context;
 
     /**
-     * @var ScopeConfigInterface
-     */
-    protected $_scopeConfig;
-
-    /**
      * @var PedidosYaFactory
      */
     protected $_pedidosYaFactory;
@@ -67,11 +62,6 @@ class CreateShipment
     protected $_messageManager;
 
     /**
-     * @var TimezoneInterface $_timezone
-     */
-    protected $_timezone;
-
-    /**
      * @var TimezoneInterface $timezone
      */
     protected $timezone;
@@ -81,7 +71,6 @@ class CreateShipment
         PedidosYaFactory $pedidosYaFactory,
         OrderRepository $orderRepository,
         Webservice $webservice,
-        ScopeConfigInterface $scopeConfigInterface,
         PedidosYaHelper $pedidosYaHelper,
         ManagerInterface $manager,
         DateTime $date,
@@ -91,7 +80,6 @@ class CreateShipment
         $this->_orderRepository     = $orderRepository;
         $this->_webservice          = $webservice;
         $this->_context             = $context;
-        $this->_scopeConfig         = $scopeConfigInterface;
         $this->_pedidosYaHelper     = $pedidosYaHelper;
         $this->_date                = $date;
         $this->_messageManager      = $manager;
@@ -110,7 +98,7 @@ class CreateShipment
                 try {
                     $order = $this->_orderRepository->get($orderId);
                 } catch (\Exception $e) {
-                    $this->_messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya: ') . $e->getMessage());
+                    $this->_messageManager->addErrorMessage(__('An error occurred trying to generate the shipment PedidosYa: ') . $e->getMessage());
                     $this->_pedidosYaHelper->log($e->getMessage());
                 }
             }
@@ -133,7 +121,6 @@ class CreateShipment
                         $pedidosYa->setIncrementId($order->getIncrementId());
 
                         if ($pedidosYaEstimateData = $order->getPedidosyaEstimatedata()) {
-
                             /**
                              * If ReferenceId is -1 the order has created in Backend
                              * and I need update this by EntityId
@@ -173,13 +160,20 @@ class CreateShipment
                                     // Set PreOrder
                                     $pedidosYa->setInfoPreorder(json_encode($createShippingResult));
                                     $pedidosYa->save();
-
-                                    if ($this->_pedidosYaHelper->getIntegrationMode($order->getStoreId())) {
-                                        // API MODE
-                                        $confirmShippingResult = $createShippingResult;
-                                    } else {
-                                        // E-COMMERCE ONLY
-                                        $confirmShippingResult = $this->_webservice->confirmShipping($createShippingResult, $order->getStoreId());
+                                    
+                                    /**
+                                     * Determine Integration Mode
+                                     */
+                                    switch ($this->_pedidosYaHelper->getIntegrationMode($order->getStoreId())) {
+                                        case "api":
+                                            // API
+                                            $confirmShippingResult = $createShippingResult;
+                                            break;
+                                        case "eco":
+                                        default:
+                                            // E-COMMERCE
+                                            $confirmShippingResult = $this->_webservice->confirmShipping($createShippingResult, $order->getStoreId());
+                                            break;
                                     }
 
                                     // Set Default Return Status
