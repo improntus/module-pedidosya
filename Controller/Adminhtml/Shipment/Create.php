@@ -106,7 +106,7 @@ class Create extends Action
         }
 
         $resultRedirect = $this->resultRedirectFactory->create();
-        $resultRedirect->setUrl($this->_redirect->getRefererUrl());
+        $resultRedirect->setPath('sales/order/view', ['order_id' => $orderId]);
         return $resultRedirect;
     }
 
