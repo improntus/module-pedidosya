@@ -435,7 +435,7 @@ class Data extends AbstractHelper
                              ->getCollection()
                              ->addFieldToFilter('store_id', $storeId)
                              ->getFirstItem();
-        //$tokenFactory->setStoreId($storeId);
+        $tokenFactory->setStoreId($storeId);
         $tokenFactory->setToken($token);
         $tokenFactory->setLatestUse($this->timezone->date()->format("Y-m-d H:i:s"));
         $tokenFactory->save();
