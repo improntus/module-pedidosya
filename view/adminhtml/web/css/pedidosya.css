@@ -1,3 +1,8 @@
+/*
+ * @author Improntus Dev Team
+ * @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
+ */
+
 .admin__menu #menu-improntus-pedidosya-menuprincipal > a:before  {
     opacity: 0.7;
     content: '';

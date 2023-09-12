@@ -235,7 +235,6 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
 
         $result = $this->_rateResultFactory->create();
         $method = $this->_rateMethodFactory->create();
-
         $method->setCarrier($this->_code);
         $method->setCarrierTitle($this->getConfigData('title'));
         $method->setMethod($this->_code);
@@ -265,21 +264,21 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             $volumeCode = $this->_helper->getVolumeAttribute() ? $this->_helper->getVolumeAttribute() : 'volume';
             $volume = (int) $_product->getResource()->getAttributeRawValue($_product->getId(), $volumeCode, $_product->getStoreId()) * $_item->getQty();
             $totalVolume += $volume;
-
             $totalPrice += $_product->getFinalPrice();
 
-            /**
-             * Fix Quantity
-             * PedidosYa requires integers
-             */
             $quantity = ceil($_item->getQty());
+            $itemWeight = (float)$_product->getWeight();
+            if (is_null($_product->getWeight())) {
+                $itemWeight = 0.1; // 100 Grs
+            }
 
+            // Add Item
             $itemsWspedidosYa[] = [
                 'value'         => $_item->getPrice(),
                 'description'   => $_item->getName(),
                 'quantity'      => $quantity,
                 'volume'        => $volume,
-                'weight'        => $_product->getWeight() * 1000 * $_item->getQty(),
+                'weight'        => $itemWeight * $_item->getQty(),
             ];
         }
 
@@ -317,6 +316,8 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
              */
             if ($debugMode) {
                 $helper->log("=============== START LOG ===============");
+                $integrationModeLog = $helper->getIntegrationMode();
+                $helper->log("== INTEGRATION MODE: $integrationModeLog ==");
             }
 
             $waypointData['waypoints'][] = [
@@ -325,13 +326,13 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             ];
 
             if ($debugMode) {
-                $helper->log(json_encode(["Waypoint Coverage Send Data: " => $waypointData], JSON_PRETTY_PRINT));
+                $helper->log(json_encode(["Waypoint Coverage Send Data: " => $waypointData]));
             }
 
             $waypointCoverage = $this->_webservice->getEstimateCoverage($waypointData);
 
             if ($debugMode) {
-                $helper->log(json_encode(["Waypoint Coverage Get Data:" => $waypointCoverage], JSON_PRETTY_PRINT));
+                $helper->log(json_encode(["Waypoint Coverage Get Data:" => $waypointCoverage]));
             }
 
             if (!$waypointCoverage) {
@@ -344,7 +345,8 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             }
 
             if (isset($waypointCoverage->waypoints[0])) {
-                if ($waypointCoverage->waypoints[0]->status == 'NOT_FOUND') {
+                if (isset($waypointCoverage->waypoints[0]->status)
+                        && $waypointCoverage->waypoints[0]->status == 'NOT_FOUND') {
                     $error = $this->_rateErrorFactory->create();
                     $error->setCarrier($this->_code);
                     $error->setCarrierTitle($this->getConfigData('title'));
@@ -367,7 +369,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             $closestSourceWaypoint = $this->_helper->getClosestSourceWaypoint($waypointCoverage);
 
             if ($debugMode) {
-                $helper->log(json_encode(["Closest Source Waypoint:" => $closestSourceWaypoint->getData()], JSON_PRETTY_PRINT));
+                $helper->log(json_encode(["Closest Source Waypoint:" => $closestSourceWaypoint->getData()]));
             }
 
             $waypoints[] = [
@@ -409,44 +411,68 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 ];
 
             if ($debugMode) {
-                $helper->log(json_encode(["Estimate Data:" => $estimatePriceData], JSON_PRETTY_PRINT));
+                $helper->log(json_encode(["Estimate Data:" => $estimatePriceData]));
             }
 
             $shippingPrice = $webservice->getEstimatePrice($estimatePriceData);
 
             if ($debugMode) {
-                $helper->log(json_encode(["Shipping Price" => $shippingPrice], JSON_PRETTY_PRINT));
+                $helper->log(json_encode(["Shipping Price" => $shippingPrice]));
             }
 
-            if ($isFreeShipping == 1) {
-                $method->setPrice(0);
-                $method->setCost(0);
-                $result->append($method);
+            /**
+             * Set Inicial Price
+             */
+            $method->setPrice(0);
+            $method->setCost(0);
 
-                $this->_checkoutSession->setPedidosyaEstimatedata(json_encode($estimatePriceData));
-                $this->_checkoutSession->setPedidosyaSourceWaypoint($closestSourceWaypoint->getEntityId());
+            if ($isFreeShipping) {
+                $result->append($method);
             } elseif (isset($shippingPrice->price)) {
+                /**
+                 * Get Price and Discount assume amount
+                 */
                 $price = $shippingPrice->price->total;
                 $assumeShippingPrice = $this->_helper->getAssumeShippingAmount();
                 $total = $price - $assumeShippingPrice;
+
+                /**
+                 * Set Price
+                 */
                 if ($total > 0) {
                     $method->setPrice($total);
                     $method->setCost($total);
-                } else {
-                    $method->setPrice(0);
-                    $method->setCost(0);
                 }
+            } elseif (isset($shippingPrice->deliveryOffers[0]->pricing->total)) {
+                /**
+                 * Get Price and Discount assume amount
+                 */
+                $price = $shippingPrice->deliveryOffers[0]->pricing->total;
+                $assumeShippingPrice = $this->_helper->getAssumeShippingAmount();
+                $total = $price - $assumeShippingPrice;
 
-                $this->_checkoutSession->setPedidosyaEstimatedata(json_encode($estimatePriceData));
-                $this->_checkoutSession->setPedidosyaSourceWaypoint($closestSourceWaypoint->getEntityId());
-                $result->append($method);
+                /**
+                 * Set Price
+                 */
+                if ($total > 0) {
+                    $method->setPrice($total);
+                    $method->setCost($total);
+                }
             } else {
                 $error = $this->_rateErrorFactory->create();
                 $error->setCarrier($this->_code);
                 $error->setCarrierTitle($this->getConfigData('title'));
                 $error->setErrorMessage(__('There are no shipping estimate for the address entered'));
                 $result->append($error);
+                return $result;
             }
+
+            /**
+             * Add Shipping Method
+             */
+            $result->append($method);
+            $this->_checkoutSession->setPedidosyaEstimatedata(json_encode($estimatePriceData));
+            $this->_checkoutSession->setPedidosyaSourceWaypoint($closestSourceWaypoint->getEntityId());
 
             /**
              * End Log

@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @author Improntus Dev Team
+ * @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
+ */
+
 namespace Improntus\PedidosYa\Helper\Logger;
 
 use Magento\Framework\Logger\Handler\Base;
@@ -9,5 +14,5 @@ class Handler extends Base
 {
     protected $loggerType = Logger::ERROR;
 
-    protected $fileName = '/var/log/error_pedidosya.log';
+    protected $fileName = '/var/log/pedidosya/error.log';
 }

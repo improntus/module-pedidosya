@@ -8,7 +8,7 @@ use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory;
 /**
  * Class StatusOrderOption
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Model\Config\Source
  */
 class StatusOrderOption implements ArrayInterface

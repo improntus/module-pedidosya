@@ -1,13 +1,12 @@
 <?php
-
 namespace Improntus\PedidosYa\Model;
 
 use Improntus\PedidosYa\Helper\Data as HelperPedidosYa;
 
 /**
  * Class Webservice
- * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2023 Improntus
+ * @author Improntus Dev Team
+ * @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
  * @package Improntus\PedidosYa\Model
  */
 class Webservice
@@ -38,6 +37,11 @@ class Webservice
     protected $_helper;
 
     /**
+     * @var bool
+     */
+    protected $_integrationMode;
+
+    /**
      * @var string
      */
     private $_accessToken;
@@ -54,14 +58,35 @@ class Webservice
         $this->_helper = $helperPedidosYa;
     }
 
-    /**
-     * @return bool
-     */
     public function login($storeId = null)
     {
+        // Get Integration Mode
+        $this->_integrationMode = $this->_helper->getIntegrationMode($storeId);
+
         /**
-         * Get Access Token
+         * Determine Integration Mode
          */
+        switch ($this->_integrationMode) {
+            case "api":
+                // API
+                $this->_accessToken = $this->_helper->getApiToken($storeId);
+                break;
+            case "eco":
+            default:
+                // E-COMMERCE
+                $this->loginEcommerce($storeId);
+                break;
+        }
+    }
+
+    /**
+     * Login using Legacy Mode
+     * @param $storeId
+     * @return false|void
+     */
+    private function loginEcommerce($storeId)
+    {
+        // Is there any token?
         if ($token = $this->_helper->getToken($storeId)) {
             $this->_accessToken = $token;
         } else {
@@ -82,7 +107,7 @@ class Webservice
             /**
              * Prepare Data & Send Request
              */
-            $WebserviceURL = $this->_helper->getWebServiceURL("token?client_id={$this->_clientId}&client_secret={$this->_clientSecret}&password={$this->_password}&username={$this->_username}&grant_type=password",true);
+            $WebserviceURL = $this->_helper->getWebServiceURL("token?client_id={$this->_clientId}&client_secret={$this->_clientSecret}&password={$this->_password}&username={$this->_username}&grant_type=password", true);
             // phpcs:ignore Magento2.Functions.DiscouragedFunction
             curl_setopt_array(
                 $curl,
@@ -116,14 +141,14 @@ class Webservice
              */
             if (isset($response->access_token)) {
                 $this->_accessToken = $response->access_token;
-                $this->_helper->saveToken($response->access_token,$storeId);
+                $this->_helper->saveToken($response->access_token, $storeId);
             } else {
                 $this->_accessToken = null;
                 return false;
             }
         }
-        return true;
     }
+
 
     /**
      * @param $estimatePriceData
@@ -146,7 +171,21 @@ class Webservice
          * Prepare Data & Send Request
          */
         $jsonData = json_encode($estimatePriceData);
-        $url = $this->_helper->getWebServiceURL("estimates/shippings");
+
+        /**
+         * Get Endpoint depend Integration Mode
+         */
+        switch ($this->_integrationMode) {
+            case "api":
+                $endpoint = "shippings/estimates";
+                break;
+            case "eco":
+            default:
+                $endpoint =  "estimates/shippings";
+                break;
+        }
+
+        $url = $this->_helper->getWebServiceURL($endpoint);
         // phpcs:ignore Magento2.Functions.DiscouragedFunction
         curl_setopt_array(
             $curl,
@@ -188,10 +227,10 @@ class Webservice
         /**
          * Has Price?
          */
-        if (isset($responseObject->price->total)) {
+        if ($this->_integrationMode == "api" && isset($responseObject->deliveryOffers[0]->pricing->total)) {
             return $responseObject;
         } else {
-            return false;
+            return isset($responseObject->price->total) ? $responseObject : false;
         }
     }
 
@@ -268,7 +307,7 @@ class Webservice
      * @param $data
      * @return false|mixed
      */
-    public function createShipping($data,$storeId =null)
+    public function createShipping($data, $storeId = null)
     {
         /**
          *  Get AccessToken

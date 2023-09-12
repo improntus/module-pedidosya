@@ -16,7 +16,7 @@ use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 /**
  * Class CreateShipment
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Model
  */
 class CreateShipment
@@ -40,11 +40,6 @@ class CreateShipment
      * @var Context
      */
     protected $_context;
-
-    /**
-     * @var ScopeConfigInterface
-     */
-    protected $_scopeConfig;
 
     /**
      * @var PedidosYaFactory
@@ -76,18 +71,15 @@ class CreateShipment
         PedidosYaFactory $pedidosYaFactory,
         OrderRepository $orderRepository,
         Webservice $webservice,
-        ScopeConfigInterface $scopeConfigInterface,
         PedidosYaHelper $pedidosYaHelper,
         ManagerInterface $manager,
         DateTime $date,
         TimezoneInterface $timezone
-    )
-    {
+    ) {
         $this->_pedidosYaFactory    = $pedidosYaFactory;
         $this->_orderRepository     = $orderRepository;
         $this->_webservice          = $webservice;
         $this->_context             = $context;
-        $this->_scopeConfig         = $scopeConfigInterface;
         $this->_pedidosYaHelper     = $pedidosYaHelper;
         $this->_date                = $date;
         $this->_messageManager      = $manager;
@@ -99,19 +91,19 @@ class CreateShipment
      * @param null $order
      * @throws LocalizedException
      */
-    public function create($orderId, $order = NULL)
+    public function create($orderId, $order = null)
     {
         if ($this->_pedidosYaHelper->isActive()) {
-            if($orderId) {
+            if ($orderId) {
                 try {
                     $order = $this->_orderRepository->get($orderId);
                 } catch (\Exception $e) {
-                    $this->_messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya: ') . $e->getMessage());
+                    $this->_messageManager->addErrorMessage(__('An error occurred trying to generate the shipment PedidosYa: ') . $e->getMessage());
                     $this->_pedidosYaHelper->log($e->getMessage());
                 }
             }
 
-            if($order->getShippingMethod() == 'pedidosya_pedidosya' && $order instanceof AbstractModel) {
+            if ($order->getShippingMethod() == 'pedidosya_pedidosya' && $order instanceof AbstractModel) {
                 $statuses = $this->_pedidosYaHelper->getStatusOrderAllowed();
                 $notAllowedPedidosYaStatus = ['pedidosya_sent', 'pedidosya_error'];
                 $orderStatus = $order->getStatus();
@@ -123,24 +115,23 @@ class CreateShipment
 
                 $alreadySent = $pedidosYa->getStatus() == 'pedidosya_sent';
 
-                if(in_array($orderStatus, $statuses) && !$alreadySent || $pedidosYa->getStatus() == 'pedidosya_cancelled') {
-                    if(!in_array($pedidosYa->getPedidosyaStatus(), $notAllowedPedidosYaStatus) || $pedidosYa->getPedidosyaStatus() == 'pedidosya_cancelled') {
+                if (in_array($orderStatus, $statuses) && !$alreadySent || $pedidosYa->getStatus() == 'pedidosya_cancelled') {
+                    if (!in_array($pedidosYa->getPedidosyaStatus(), $notAllowedPedidosYaStatus) || $pedidosYa->getPedidosyaStatus() == 'pedidosya_cancelled') {
                         $pedidosYa->setOrderId($order->getId());
                         $pedidosYa->setIncrementId($order->getIncrementId());
 
-                        if($pedidosYaEstimateData = $order->getPedidosyaEstimatedata()) {
-
+                        if ($pedidosYaEstimateData = $order->getPedidosyaEstimatedata()) {
                             /**
                              * If ReferenceId is -1 the order has created in Backend
                              * and I need update this by EntityId
                              */
                             $data = json_decode($pedidosYaEstimateData);
-                            if($data->referenceId==-1){
+                            if ($data->referenceId==-1) {
                                 $data->referenceId=$order->getEntityId();
                                 $order->setPedidosyaEstimatedata(json_encode($data));
                             }
 
-                            if(isset($data->deliveryTime)) {
+                            if (isset($data->deliveryTime)) {
                                 // Get Preapration Time
                                 $preparationTime = $this->_pedidosYaHelper->getPreparationTime();
                                 // Get current date and times based on store timezone
@@ -148,47 +139,71 @@ class CreateShipment
                                 // Add Preparation Time to Current Date
                                 $data->deliveryTime = gmdate('Y-m-d\TH:i:s\Z', strtotime("{$currentDateTime} + {$preparationTime} minutes"));
                             }
+
                             $data->waypoints[0]->phone = preg_replace("/[^0-9]/", "", $data->waypoints[0]->phone);
                             $data->waypoints[1]->phone = preg_replace("/[^0-9]/", "", $order->getShippingAddress()->getTelephone());
                             $data->waypoints[1]->name = $order->getShippingAddress()->getFirstname()." ".$order->getShippingAddress()->getLastname();
                             $data->notificationMail =  $order->getShippingAddress()->getEmail();
                             $data->referenceId = '#' . $order->getIncrementId();
 
-                            if($this->_pedidosYaHelper->checkWaypointAvailability($order->getPedidosyaSourceWaypoint(), $data->deliveryTime)) {
+                            if ($this->_pedidosYaHelper->checkWaypointAvailability($order->getPedidosyaSourceWaypoint(), $data->deliveryTime)) {
                                 /**
                                  * Create Shipping
                                  */
-                                $createShippingResult = $this->_webservice->createShipping($data,$order->getStoreId());
+                                $createShippingResult = $this->_webservice->createShipping($data, $order->getStoreId());
 
                                 /**
                                  * Check PYa Shipping Response
                                  */
-                                if(isset($createShippingResult->price)){
+                                $shippingStatus = strtolower($createShippingResult->status ?? '');
+                                if ($shippingStatus === "confirmed" || $shippingStatus === "preorder") {
+                                    // Set PreOrder
                                     $pedidosYa->setInfoPreorder(json_encode($createShippingResult));
                                     $pedidosYa->save();
-
-                                    $confirmShippingResult = $this->_webservice->confirmShipping($createShippingResult,$order->getStoreId());
-
-                                    if(isset($confirmShippingResult->confirmationCode)) {
-                                        $pedidosYa->setInfoConfirmed(json_encode($confirmShippingResult));
-                                        $pedidosYa->save();
-                                        $order->addStatusHistoryComment("PedidosYa Confirmation Code: {$confirmShippingResult->confirmationCode}");
-                                    } else {
-                                        $pedidosYa->setStatus('pedidosya_error');
-                                        $pedidosYa->save();
-                                        $errorMessage = $createShippingResult->message ?? $createShippingResult->code;
-                                        $order->addStatusHistoryComment("PedidosYa Confirm Order ERROR: $errorMessage");
-                                        $this->_pedidosYaHelper->log($createShippingResult);
-                                        return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS;
+                                    
+                                    /**
+                                     * Determine Integration Mode
+                                     */
+                                    switch ($this->_pedidosYaHelper->getIntegrationMode($order->getStoreId())) {
+                                        case "api":
+                                            // API
+                                            $confirmShippingResult = $createShippingResult;
+                                            break;
+                                        case "eco":
+                                        default:
+                                            // E-COMMERCE
+                                            $confirmShippingResult = $this->_webservice->confirmShipping($createShippingResult, $order->getStoreId());
+                                            break;
                                     }
 
-                                    $pedidosYa->setStatus('pedidosya_sent');
-                                    $pedidosYa->save();
+                                    // Set Default Return Status
+                                    $returnStatus = $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS;
+                                    if (isset($confirmShippingResult->confirmationCode)) {
+                                        // Save Confirmed Data
+                                        $pedidosYa->setInfoConfirmed(json_encode($confirmShippingResult));
+                                        $pedidosYa->setStatus('pedidosya_sent');
+                                        $pedidosYa->save();
+                                        // Set Comment
+                                        $statusCommentHistory = __('PedidosYa Confirmation Code: %1', $confirmShippingResult->confirmationCode);
+                                        // Set Return Status
+                                        $returnStatus = $this->_pedidosYaHelper::PEDIDOSYA_OK;
+                                        // Create Shipment
+                                        $this->_pedidosYaHelper->createShipment($order, $pedidosYa);
+                                    } else {
+                                        // Get Error Message / Code
+                                        $errorMessage = $createShippingResult->message ?? $createShippingResult->code;
+                                        // Set Comment
+                                        $statusCommentHistory = __('PedidosYa Confirmation ERROR: %1', $errorMessage);
+                                        // Log error
+                                        $this->_pedidosYaHelper->log($createShippingResult);
+                                    }
+
+                                    // Save Order
+                                    $order->addStatusHistoryComment($statusCommentHistory);
                                     $order->save();
-                                    $this->_pedidosYaHelper->createShipment($order, $pedidosYa);
-                                    return $this->_pedidosYaHelper::PEDIDOSYA_OK;
+                                    return $returnStatus;
                                 } else {
-                                    $this->_pedidosYaHelper->log(json_encode($createShippingResult,JSON_PRETTY_PRINT));
+                                    $this->_pedidosYaHelper->log(json_encode($createShippingResult));
                                     $errorMessage = $createShippingResult->message ?? $createShippingResult->code;
                                     $order->addStatusHistoryComment("PedidosYa Pre Order ERROR: $errorMessage");
                                     $order->save();
@@ -201,7 +216,7 @@ class CreateShipment
                             return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_DATA;
                         }
                     }
-                } elseif(!$alreadySent) {
+                } elseif (!$alreadySent) {
                     return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_STATUS;
                 }
             }

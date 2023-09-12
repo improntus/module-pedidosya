@@ -1,34 +1,49 @@
 <?xml version="1.0"?>
+<!--
+  ~ @author Improntus Dev Team
+  ~ @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
+  -->
+
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="shipping" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1">
             <group id="pedidosya" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Pedidos Ya Configuration</label>
-                <field id="client_id" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Client ID</label>
-                    <validate>required-entry</validate>
-                    <comment>Data provided by Pedidos Ya</comment>
+                <label>PedidosYa Configuration</label>
+                <field id="integration_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Integration Mode</label>
+                    <source_model>Improntus\PedidosYa\Model\Config\Source\IntegrationModeOption</source_model>
                 </field>
-                <field id="client_secret" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Secret key</label>
-                    <validate>required-entry</validate>
-                    <comment>Data provided by Pedidos Ya</comment>
-                </field>
-                <field id="username" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Username</label>
-                    <validate>required-entry</validate>
-                    <comment>Data provided by Pedidos Ya</comment>
-                </field>
-                <field id="password" translate="label" type="password" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Password</label>
-                    <validate>required-entry</validate>
-                    <comment>Data provided by Pedidos Ya</comment>
-                </field>
+                <group id="api" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API</label>
+                    <field id="token" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Token</label>
+                        <comment>Data provided by PedidosYa</comment>
+                    </field>
+                </group>
+                <group id="ecommerce" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>E-commerce</label>
+                    <field id="client_id" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Client ID</label>
+                        <comment>Data provided by PedidosYa</comment>
+                    </field>
+                    <field id="client_secret" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Client Secret</label>
+                        <comment>Data provided by PedidosYa</comment>
+                    </field>
+                    <field id="username" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Username</label>
+                        <comment>Data provided by PedidosYa</comment>
+                    </field>
+                    <field id="password" translate="label" type="password" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Password</label>
+                        <comment>Data provided by PedidosYa</comment>
+                    </field>
+                </group>
             </group>
         </section>
         <section id="carriers" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1">
             <group id="pedidosya" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Pedidos Ya</label>
+                <label>PedidosYa</label>
                 <field id="active" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
+<!--
+  ~ @author Improntus Dev Team
+  ~ @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
+  -->
+
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Improntus_PedidosYa" setup_version="1.0.28">
+    <module name="Improntus_PedidosYa" setup_version="2.0.0">
         <sequence>
             <module name="Magento_Checkout"/>
             <module name="Magento_Shipping"/>

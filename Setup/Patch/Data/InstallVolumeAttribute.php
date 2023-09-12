@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @author Improntus Dev Team
+ * @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
+ */
+
 declare(strict_types=1);
 
 namespace Improntus\PedidosYa\Setup\Patch\Data;

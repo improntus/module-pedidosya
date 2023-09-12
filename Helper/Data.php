@@ -10,7 +10,6 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\MailException;
 use Magento\Sales\Model\Convert\Order;
 use Magento\Sales\Model\Order\Shipment\TrackFactory;
 use Magento\Shipping\Model\ShipmentNotifier;
@@ -26,7 +25,7 @@ use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 /**
  * Class Data
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Helper
  */
 class Data extends AbstractHelper
@@ -51,14 +50,14 @@ class Data extends AbstractHelper
     const API_ENDPOINT = "https://courier-api.pedidosya.com/%s/%s";
 
     /**
-     * PeYa API Version
-     */
-    const API_VERSION = "v1";
-
-    /**
      * PeYa Token Expiration in Minutes
      */
     const TOKEN_EXPIRATION = 45;
+
+    /**
+     * PeYa API Version
+     */
+    protected $apiVersion = "v1";
 
     /**
      * @var ScopeConfigInterface
@@ -175,10 +174,37 @@ class Data extends AbstractHelper
     /**
      * @return string
      */
+    public function getIntegrationMode($storeId = null)
+    {
+        // Get Integration Mode
+        $integrationMode = $this->_scopeConfig->getValue(
+            'shipping/pedidosya/integration_mode',
+            ScopeInterface::SCOPE_STORE,
+            $storeId ?: $this->getCurrentStoreId()
+        );
+
+        // Update API Version
+        switch ($integrationMode) {
+            case "api":
+                $this->apiVersion = 'v3';
+                break;
+            case "eco":
+            default:
+                $this->apiVersion = 'v1';
+                break;
+        }
+
+        // Return Integration Mode
+        return $integrationMode;
+    }
+
+    /**
+     * @return string
+     */
     public function getClientId($storeId = null)
     {
         return $this->_scopeConfig->getValue(
-            'shipping/pedidosya/client_id',
+            'shipping/pedidosya/ecommerce/client_id',
             ScopeInterface::SCOPE_STORE,
             $storeId ?: $this->getCurrentStoreId()
         );
@@ -190,7 +216,7 @@ class Data extends AbstractHelper
     public function getClientSecret($storeId = null)
     {
         return $this->_scopeConfig->getValue(
-            'shipping/pedidosya/client_secret',
+            'shipping/pedidosya/ecommerce/client_secret',
             ScopeInterface::SCOPE_STORE,
             $storeId ?: $this->getCurrentStoreId()
         );
@@ -202,7 +228,7 @@ class Data extends AbstractHelper
     public function getUsername($storeId = null)
     {
         return $this->_scopeConfig->getValue(
-            'shipping/pedidosya/username',
+            'shipping/pedidosya/ecommerce/username',
             ScopeInterface::SCOPE_STORE,
             $storeId ?: $this->getCurrentStoreId()
         );
@@ -214,7 +240,19 @@ class Data extends AbstractHelper
     public function getPassword($storeId = null)
     {
         return $this->_scopeConfig->getValue(
-            'shipping/pedidosya/password',
+            'shipping/pedidosya/ecommerce/password',
+            ScopeInterface::SCOPE_STORE,
+            $storeId ?: $this->getCurrentStoreId()
+        );
+    }
+
+    /**
+     * @return string
+     */
+    public function getApiToken($storeId = null)
+    {
+        return $this->_scopeConfig->getValue(
+            'shipping/pedidosya/api/token',
             ScopeInterface::SCOPE_STORE,
             $storeId ?: $this->getCurrentStoreId()
         );
@@ -445,7 +483,7 @@ class Data extends AbstractHelper
         /**
          * This Request is only to validate that the access token is valid
          */
-        if (!self::checkAccessToken($accessToken)) {
+        if (!$this->checkAccessToken($accessToken)) {
             return false;
         }
 
@@ -557,12 +595,10 @@ class Data extends AbstractHelper
     {
         if ($order->canShip()) {
             $orderShipment = $this->_convertOrder->toShipment($order);
-
             foreach ($order->getAllItems() as $orderItem) {
                 if (!$orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
                     continue;
                 }
-
                 $qty = $orderItem->getQtyToShip();
                 $shipmentItem = $this->_convertOrder->itemToShipmentItem($orderItem)->setQty($qty);
                 $orderShipment->addItem($shipmentItem);
@@ -578,17 +614,18 @@ class Data extends AbstractHelper
     /**
      * @param $order
      * @param $pedidosYa
-     * @param null $orderShipment
-     * @throws MailException
+     * @param $orderShipment
      */
     public function createTracking($order, $pedidosYa, $orderShipment = null)
     {
         $pedidosYaConfirmedData = json_decode($pedidosYa->getInfoConfirmed());
+        $trackingUrl = $pedidosYaConfirmedData->shareLocationUrl ?? '';
         if (!$orderShipment) {
             $orderShipment = $this->_trackFactory->create()->getCollection()
                 ->addFieldToFilter('order_id', ['eq' => $order->getEntityId()])
                 ->getFirstItem();
             $orderShipment->setTrackNumber($pedidosYaConfirmedData->confirmationCode);
+            $orderShipment->setTrackUrl($trackingUrl);
             $order->save();
             $orderShipment->save();
         } else {
@@ -597,10 +634,11 @@ class Data extends AbstractHelper
                     ->setNumber($pedidosYaConfirmedData->confirmationCode)
                     ->setCarrierCode('pedidosya')
                     ->setTitle('Pedidos Ya Tracking')
+                    ->setUrl($trackingUrl)
             )->save();
             $orderShipment->save();
             $orderShipment->getOrder()->save();
-            $this->_shipmentNotifier->notify($orderShipment);
+            //$this->_shipmentNotifier->notify($orderShipment);
         }
     }
 
@@ -651,6 +689,7 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Return Waypoint Availability
      * @param $waypointId
      * @param $deliveryTime
      * @return bool
@@ -666,11 +705,13 @@ class Data extends AbstractHelper
         $day = $days[date("w", strtotime($this->timezone->date()->format("Y-m-d\TH:i:s\Z")))];
         $openHour = $waypoint->getData('working_hours_'. $day. '_open');
         $closeHour = $waypoint->getData('working_hours_'. $day. '_close');
+        $deliveryTime = new \DateTime($deliveryTime);
+        $deliveryHour = $deliveryTime->format("H");
 
-        $date = \DateTime::createFromFormat('Y-m-d\TH:i:s\Z', $deliveryTime);
-        $deliveryHour = $date->format('H');
-
-        if ($openHour < $deliveryHour && $openHour < $closeHour) {
+        /**
+         * Check Waypoint Availability
+         */
+        if ($deliveryHour >= $openHour && $deliveryHour <= $closeHour) {
             return true;
         }
         return false;
@@ -689,11 +730,26 @@ class Data extends AbstractHelper
      * Return WebService URL
      * @return string
      */
-    public function getWebServiceURL($endpoint, $authEndpoint = false){
+    public function getWebServiceURL($endpoint, $authEndpoint = false)
+    {
         /**
          * Auth or API?
          */
         $WebserviceURL = $authEndpoint ? self::AUTH_ENDPOINT : self::API_ENDPOINT;
+
+        /**
+         * Get API Version
+         */
+        $apiVersion = $this->apiVersion;
+
+        /**
+         * TODO
+         * If the endpoint is estimates/coverage, it forces to use version 1 since
+         * we require the coordinates of the client's address to determine the nearest Waypoint
+         */
+        if (strpos($endpoint, "estimates/coverage") !== false) {
+            $apiVersion = 'v1';
+        }
 
         /**
          * Return WebService URL
@@ -701,7 +757,7 @@ class Data extends AbstractHelper
         return vsprintf(
             $WebserviceURL,
             [
-                self::API_VERSION,
+                $apiVersion,
                 $endpoint
             ]
         );

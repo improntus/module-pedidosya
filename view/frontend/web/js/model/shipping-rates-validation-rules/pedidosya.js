@@ -1,6 +1,6 @@
-/**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+/*
+ * @author Improntus Dev Team
+ * @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
  */
 
 define([], function () {

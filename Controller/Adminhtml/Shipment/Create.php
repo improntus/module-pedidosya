@@ -2,15 +2,12 @@
 
 namespace Improntus\PedidosYa\Controller\Adminhtml\Shipment;
 
-
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Result\Page;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\View\Result\PageFactory;
 use Improntus\PedidosYa\Model\CreateShipment;
 use Improntus\PedidosYa\Helper\Data as PedidosYaHelper;
@@ -18,7 +15,7 @@ use Improntus\PedidosYa\Helper\Data as PedidosYaHelper;
 /**
  * Class Create
  * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2022 Improntus
+ * @copyright Copyright (c) 2023 Improntus
  * @package Improntus\PedidosYa\Controller\Adminhtml\Shipment
  */
 class Create extends Action
@@ -39,11 +36,6 @@ class Create extends Action
     protected $_context;
 
     /**
-     * @var ScopeConfigInterface
-     */
-    protected $_scopeConfig;
-
-    /**
      * @var CreateShipment
      */
     protected $_createShipment;
@@ -56,27 +48,23 @@ class Create extends Action
     /**
      * @param Context $context
      * @param Registry $coreRegistry
-     * @param FileFactory $fileFactory
-     * @param ScopeConfigInterface $scopeConfigInterface
      * @param CreateShipment $createShipment
      * @param PedidosYaHelper $pedidosYaHelper
+     * @param RedirectFactory $resultRedirectFactory
      */
     public function __construct(
         Context $context,
         Registry $coreRegistry,
-        FileFactory $fileFactory,
-        ScopeConfigInterface $scopeConfigInterface,
         CreateShipment $createShipment,
-        PedidosYaHelper $pedidosYaHelper
-    )
-    {
+        PedidosYaHelper $pedidosYaHelper,
+        RedirectFactory $resultRedirectFactory
+    ) {
         parent::__construct($context);
-        $this->_coreRegistry        = $coreRegistry;
-        $this->resultPageFactory    = $context->getResultFactory();
-        $this->_context             = $context;
-        $this->_scopeConfig         = $scopeConfigInterface;
-        $this->_createShipment      = $createShipment;
-        $this->_pedidosYaHelper     = $pedidosYaHelper;
+        $this->_coreRegistry            = $coreRegistry;
+        $this->resultRedirectFactory    = $resultRedirectFactory;
+        $this->_context                 = $context;
+        $this->_createShipment          = $createShipment;
+        $this->_pedidosYaHelper         = $pedidosYaHelper;
     }
 
     /**
@@ -86,33 +74,39 @@ class Create extends Action
      */
     public function execute()
     {
-        if($orderId = $this->getRequest()->getParam('order_id')) {
+        if ($orderId = $this->getRequest()->getParam('order_id')) {
             try {
                 $response = $this->_createShipment->create($orderId);
-                if($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_STATUS) {
-                    $this->messageManager->addErrorMessage(__('The status of the order does not allow to generate the shipment Pedidos Ya.'));
-                } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_OK) {
-                    $this->messageManager->addSuccessMessage(__('Pedidos Ya shipment generated.'));
-                } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS) {
-                    $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. WS error response.'));
-                } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_DATA) {
-                    $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. EstimateData field is missing.'));
-                } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_TIME) {
-                    $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. Waypoint is not in working hours.'));
-                } elseif($response == $this->_pedidosYaHelper::PEDIDOSYA_ERROR_RIDER) {
-                    $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya. There is no rider available at this time'));
+
+                // Define Status Code => Message
+                $statusMessages = [
+                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_STATUS => 'The status of the order does not allow to generate the shipment Pedidos Ya.',
+                    $this->_pedidosYaHelper::PEDIDOSYA_OK => 'Pedidos Ya shipment generated.',
+                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS => 'An error occurred trying to generate the shipment Pedidos Ya. WS error response.',
+                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_DATA => 'An error occurred trying to generate the shipment Pedidos Ya. EstimateData field is missing.',
+                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_TIME => 'An error occurred trying to generate the shipment Pedidos Ya. Waypoint is not in working hours.',
+                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_RIDER => 'An error occurred trying to generate the shipment Pedidos Ya. There is no rider available at this time',
+                ];
+
+                // Add Message
+                if (array_key_exists($response, $statusMessages)) {
+                    if ($response == $this->_pedidosYaHelper::PEDIDOSYA_OK) {
+                        $this->messageManager->addSuccessMessage($statusMessages[$response]);
+                    } else {
+                        $this->messageManager->addErrorMessage($statusMessages[$response]);
+                    }
                 } else {
-                    $this->messageManager->addErrorMessage(__("An error occurred trying to generate the shipment Pedidos Ya. %1",$response));
+                    // Other error
+                    $this->messageManager->addErrorMessage(__("An error occurred trying to generate the shipment PedidosYa: %1", $response));
                 }
             } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment Pedidos Ya.') . $e->getMessage());
+                $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment PedidosYa: %s', $e->getMessage()));
                 $this->_pedidosYaHelper->log($e->getMessage());
             }
         }
 
-        $resultRedirect = $this->resultPageFactory->create(ResultFactory::TYPE_REDIRECT);
-        $resultRedirect->setUrl($this->_redirect->getRefererUrl());
-
+        $resultRedirect = $this->resultRedirectFactory->create();
+        $resultRedirect->setPath('sales/order/view', ['order_id' => $orderId]);
         return $resultRedirect;
     }
 
@@ -123,5 +117,4 @@ class Create extends Action
     {
         return $this->_authorization->isAllowed('Improntus_PedidosYa::shipment_create');
     }
-
 }
