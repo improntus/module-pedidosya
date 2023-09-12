@@ -266,10 +266,6 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             $totalVolume += $volume;
             $totalPrice += $_product->getFinalPrice();
 
-            /**
-             * Fix Quantity
-             * PedidosYa requires integers
-             */
             $quantity = ceil($_item->getQty());
             $itemWeight = (float)$_product->getWeight();
             if (is_null($_product->getWeight())) {
