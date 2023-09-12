@@ -18,4 +18,4 @@ CHANGELOG
 - Improvements multi-store Support
 
 ### 2.0.0
-- PedidosYa API v3 Implementation
+- PedidosYa API [v3](https://developers.pedidosya.com/courier-api/v3) Implementation
