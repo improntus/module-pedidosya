@@ -2,7 +2,7 @@
 
 /**
  * @author Improntus Dev Team
- * @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
+ * @copyright Copyright (c) 2025 Improntus (http://www.improntus.com/)
  */
 
 namespace Improntus\PedidosYa\Model\ResourceModel;
@@ -12,7 +12,7 @@ use Magento\Framework\Model\ResourceModel\Db\Context;
 
 /**
  * Class Token
- * @author Improntus <http://www.improntus.com> - Ecommerce done right
+ * @author Improntus <http://www.improntus.com> - Elevating Digital Transformation | Adobe Solution Partner
  * @copyright Copyright (c) 2022 Improntus
  * @package Improntus\PedidosYa\Model\ResourceModel
  */

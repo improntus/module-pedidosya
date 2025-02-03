@@ -15,8 +15,8 @@ use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 
 /**
  * Class CreateShipment
- * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2023 Improntus
+ * @author Improntus <http://www.improntus.com> - Elevating Digital Transformation | Adobe Solution Partner
+ * @copyright Copyright (c) 2025 Improntus
  * @package Improntus\PedidosYa\Model
  */
 class CreateShipment
@@ -160,7 +160,7 @@ class CreateShipment
                                     // Set PreOrder
                                     $pedidosYa->setInfoPreorder(json_encode($createShippingResult));
                                     $pedidosYa->save();
-                                    
+
                                     /**
                                      * Determine Integration Mode
                                      */

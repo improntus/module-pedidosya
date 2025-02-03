@@ -6,7 +6,7 @@ use Improntus\PedidosYa\Helper\Data as HelperPedidosYa;
 /**
  * Class Webservice
  * @author Improntus Dev Team
- * @copyright Copyright (c) 2023 Improntus (http://www.improntus.com/)
+ * @copyright Copyright (c) 2025 Improntus (http://www.improntus.com/)
  * @package Improntus\PedidosYa\Model
  */
 class Webservice

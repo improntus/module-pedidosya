@@ -8,8 +8,8 @@ use Magento\Framework\UrlInterface;
 
 /**
  * Class Actions
- * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2023 Improntus
+ * @author Improntus <http://www.improntus.com> - Elevating Digital Transformation | Adobe Solution Partner
+ * @copyright Copyright (c) 2025 Improntus
  * @package Improntus\PedidosYa\Ui\Component\Listing\Column
  */
 class Actions extends Column
