@@ -2,7 +2,7 @@
   "name": "improntus/module-pedidosya-magento-2",
   "description": "Pedidos Ya Official Module Magento 2",
   "type": "magento2-module",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "require": {
   },
   "autoload": {

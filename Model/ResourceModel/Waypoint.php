@@ -7,8 +7,8 @@ use Magento\Framework\Model\ResourceModel\Db\Context;
 
 /**
  * Class Waypoint
- * @author Improntus <http://www.improntus.com> - Ecommerce done right
- * @copyright Copyright (c) 2023 Improntus
+ * @author Improntus <http://www.improntus.com> - Elevating Digital Transformation | Adobe Solution Partner
+ * @copyright Copyright (c) 2025 Improntus
  * @package Improntus\PedidosYa\Model\ResourceModel
  */
 class Waypoint extends AbstractDb
