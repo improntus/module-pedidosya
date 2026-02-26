@@ -41,8 +41,8 @@ class Token extends AbstractModel
     public function __construct(
         Context $context,
         Registry $registry,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource,
+        ?AbstractDb $resourceCollection,
         array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
