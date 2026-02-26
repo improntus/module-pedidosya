@@ -14,8 +14,8 @@ use Improntus\PedidosYa\Helper\Data as PedidosYaHelper;
 
 /**
  * Class Create
- * @author Improntus <http://www.improntus.com> - Elevating Digital Transformation | Adobe Solution Partner
- * @copyright Copyright (c) 2025 Improntus
+ * @author Improntus <http://www.improntus.com> - Adobe Gold Technology Partner | Adobe Gold Solution Partner
+ * @copyright Copyright (c) 2026 Improntus
  * @package Improntus\PedidosYa\Controller\Adminhtml\Shipment
  */
 class Create extends Action

@@ -9,8 +9,8 @@ use Improntus\PedidosYa\Model\Carrier\PedidosYa;
 
 /**
  * Class SalesOrderPlaceBefore
- * @author Improntus <http://www.improntus.com> - Elevating Digital Transformation | Adobe Solution Partner
- * @copyright Copyright (c) 2025 Improntus
+ * @author Improntus <http://www.improntus.com> - Adobe Gold Technology Partner | Adobe Gold Solution Partner
+ * @copyright Copyright (c) 2026 Improntus
  * @package Improntus\PedidosYa\Observer
  */
 class SalesOrderPlaceBefore implements ObserverInterface

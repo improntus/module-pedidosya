@@ -13,8 +13,8 @@ use Magento\Framework\View\Result\PageFactory;
 
 /**
  * Class Edit
- * @author Improntus <http://www.improntus.com> - Elevating Digital Transformation | Adobe Solution Partner
- * @copyright Copyright (c) 2025 Improntus
+ * @author Improntus <http://www.improntus.com> - Adobe Gold Technology Partner | Adobe Gold Solution Partner
+ * @copyright Copyright (c) 2026 Improntus
  * @package Improntus\PedidosYa\Controller\Adminhtml\Waypoint
  */
 class Edit extends Action
@@ -75,7 +75,7 @@ class Edit extends Action
         $this->_coreRegistry->register('row_data', $rowData);
 
         $resultPage = $this->_resultPageFactory->create();
-        $title = $rowId ? __('Edit Waypoint ').$rowTitle : __('Create Waypoint');
+        $title = $rowId ? Edit . php__('Edit Waypoint ') . $rowTitle : __('Create Waypoint');
 
         $resultPage->getConfig()->getTitle()->prepend($title);
         return $resultPage;

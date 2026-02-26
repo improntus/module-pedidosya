@@ -1,6 +1,9 @@
 CHANGELOG
 ---------
 
+### 2.0.2
+- Compatibility with Adobe Commerce 2.4.8-p1 / Magento 2 Open Source 2.4.8-p1
+
 ### 2.0.1
 - Compatibility with Adobe Commerce 2.4.7 / Magento 2 Open Source 2.4.7
 

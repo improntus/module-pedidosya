@@ -15,8 +15,8 @@ use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 
 /**
  * Class CreateShipment
- * @author Improntus <http://www.improntus.com> - Elevating Digital Transformation | Adobe Solution Partner
- * @copyright Copyright (c) 2025 Improntus
+ * @author Improntus <http://www.improntus.com> - Adobe Gold Technology Partner | Adobe Gold Solution Partner
+ * @copyright Copyright (c) 2026 Improntus
  * @package Improntus\PedidosYa\Model
  */
 class CreateShipment
@@ -98,7 +98,7 @@ class CreateShipment
                 try {
                     $order = $this->_orderRepository->get($orderId);
                 } catch (\Exception $e) {
-                    $this->_messageManager->addErrorMessage(__('An error occurred trying to generate the shipment PedidosYa: ') . $e->getMessage());
+                    $this->_messageManager->addErrorMessage(CreateShipment . php__('An error occurred trying to generate the shipment PedidosYa: ') . $e->getMessage());
                     $this->_pedidosYaHelper->log($e->getMessage());
                 }
             }
@@ -142,7 +142,7 @@ class CreateShipment
 
                             $data->waypoints[0]->phone = preg_replace("/[^0-9]/", "", $data->waypoints[0]->phone);
                             $data->waypoints[1]->phone = preg_replace("/[^0-9]/", "", $order->getShippingAddress()->getTelephone());
-                            $data->waypoints[1]->name = $order->getShippingAddress()->getFirstname()." ".$order->getShippingAddress()->getLastname();
+                            $data->waypoints[1]->name = $order->getShippingAddress()->getFirstname() . " CreateShipment.php" .$order->getShippingAddress()->getLastname();
                             $data->notificationMail =  $order->getShippingAddress()->getEmail();
                             $data->referenceId = '#' . $order->getIncrementId();
 

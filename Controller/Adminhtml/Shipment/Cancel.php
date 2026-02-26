@@ -18,8 +18,8 @@ use Improntus\PedidosYa\Helper\Data as PedidosYaHelper;
 
 /**
  * Class Cancel
- * @author Improntus <http://www.improntus.com> - Elevating Digital Transformation | Adobe Solution Partner
- * @copyright Copyright (c) 2025 Improntus
+ * @author Improntus <http://www.improntus.com> - Adobe Gold Technology Partner | Adobe Gold Solution Partner
+ * @copyright Copyright (c) 2026 Improntus
  * @package Improntus\PedidosYa\Controller\Adminhtml\Shipment
  */
 class Cancel extends Action
@@ -161,7 +161,7 @@ class Cancel extends Action
                 }
             } catch (\Exception $e) {
                 $this->_pedidosYaHelper->log($e->getMessage());
-                $this->messageManager->addErrorMessage(__('There was a problem canceling the shipment.') . $e->getMessage());
+                $this->messageManager->addErrorMessage(Cancel . php__('There was a problem canceling the shipment.') . $e->getMessage());
             }
         }
 

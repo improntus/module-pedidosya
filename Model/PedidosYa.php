@@ -10,8 +10,8 @@ use Magento\Framework\Registry;
 
 /**
  * Class PedidosYa
- * @author Improntus <http://www.improntus.com> - Elevating Digital Transformation | Adobe Solution Partner
- * @copyright Copyright (c) 2025 Improntus
+ * @author Improntus <http://www.improntus.com> - Adobe Gold Technology Partner | Adobe Gold Solution Partner
+ * @copyright Copyright (c) 2026 Improntus
  * @package Improntus\PedidosYa\Model
  */
 class PedidosYa extends AbstractModel
