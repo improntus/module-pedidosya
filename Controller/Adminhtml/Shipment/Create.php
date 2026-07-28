@@ -4,6 +4,7 @@ namespace Improntus\PedidosYa\Controller\Adminhtml\Shipment;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Result\Page;
@@ -18,7 +19,7 @@ use Improntus\PedidosYa\Helper\Data as PedidosYaHelper;
  * @copyright Copyright (c) 2026 Improntus
  * @package Improntus\PedidosYa\Controller\Adminhtml\Shipment
  */
-class Create extends Action
+class Create extends Action implements HttpPostActionInterface
 {
     /**
      * @var Registry
@@ -74,18 +75,20 @@ class Create extends Action
      */
     public function execute()
     {
-        if ($orderId = $this->getRequest()->getParam('order_id')) {
+        $orderId = (int) $this->getRequest()->getParam('order_id');
+        if ($orderId) {
             try {
-                $response = $this->_createShipment->create($orderId);
+                // Manual admin dispatch: force retry past a previous pedidosya_error state
+                $response = $this->_createShipment->create($orderId, null, true);
 
                 // Define Status Code => Message
                 $statusMessages = [
-                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_STATUS => 'The status of the order does not allow to generate the shipment Pedidos Ya.',
-                    $this->_pedidosYaHelper::PEDIDOSYA_OK => 'Pedidos Ya shipment generated.',
-                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS => 'An error occurred trying to generate the shipment Pedidos Ya. WS error response.',
-                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_DATA => 'An error occurred trying to generate the shipment Pedidos Ya. EstimateData field is missing.',
-                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_TIME => 'An error occurred trying to generate the shipment Pedidos Ya. Waypoint is not in working hours.',
-                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_RIDER => 'An error occurred trying to generate the shipment Pedidos Ya. There is no rider available at this time',
+                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_STATUS => __('The status of the order does not allow to generate the shipment Pedidos Ya.'),
+                    $this->_pedidosYaHelper::PEDIDOSYA_OK => __('Pedidos Ya shipment generated.'),
+                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_WS => __('An error occurred trying to generate the shipment Pedidos Ya. WS error response.'),
+                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_DATA => __('An error occurred trying to generate the shipment Pedidos Ya. EstimateData field is missing.'),
+                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_TIME => __('An error occurred trying to generate the shipment Pedidos Ya. Waypoint is not in working hours.'),
+                    $this->_pedidosYaHelper::PEDIDOSYA_ERROR_RIDER => __('An error occurred trying to generate the shipment Pedidos Ya. There is no rider available at this time'),
                 ];
 
                 // Add Message
@@ -100,7 +103,7 @@ class Create extends Action
                     $this->messageManager->addErrorMessage(__("An error occurred trying to generate the shipment PedidosYa: %1", $response));
                 }
             } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment PedidosYa: %s', $e->getMessage()));
+                $this->messageManager->addErrorMessage(__('An error occurred trying to generate the shipment PedidosYa: %1', $e->getMessage()));
                 $this->_pedidosYaHelper->log($e->getMessage());
             }
         }

@@ -7,6 +7,7 @@ use Improntus\PedidosYa\Model\WaypointFactory;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Backend\Model\View\Result\Redirect;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Exception\LocalizedException;
 
 /**
@@ -15,7 +16,7 @@ use Magento\Framework\Exception\LocalizedException;
  * @copyright Copyright (c) 2026 Improntus
  * @package Improntus\PedidosYa\Controller\Adminhtml\Waypoint
  */
-class Delete extends Action
+class Delete extends Action implements HttpPostActionInterface
 {
     /**
      * @var WaypointFactory

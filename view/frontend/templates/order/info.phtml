@@ -24,9 +24,9 @@
                 <?php else : ?>
                     <?= $block->escapeHtml(__('No shipping information available')) ?>
                 <?php endif; ?>
-                    <?php if($_order->getShippingMethod() == 'pedidosya_pedidosya' && $trackingUrlStatus != ''):?>
+                    <?php if($_order->getShippingMethod() == 'pedidosya_pedidosya' && $trackingUrlStatus !== '' && strpos($trackingUrlStatus, 'https://') === 0):?>
                         <div class="shipping_status" style="margin-top: 10px;">
-                            <a href="<?php echo $block->escapeHtml($trackingUrlStatus);?>" target="_blank"><?= $block->escapeHtml(__('Pedidos Ya Status')) ?></a>
+                            <a href="<?= $block->escapeUrl($trackingUrlStatus) ?>" target="_blank"><?= $block->escapeHtml(__('Pedidos Ya Status')) ?></a>
                         </div>
                     <?php endif;?>
                 </div>

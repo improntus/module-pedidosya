@@ -27,6 +27,7 @@ use Improntus\PedidosYa\Model\Webservice;
 use Magento\Framework\Xml\Security;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 
 /**
  * Class PedidosYa
@@ -101,6 +102,11 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
     protected $timezone;
 
     /**
+     * @var ProductCollectionFactory
+     */
+    protected $_productCollectionFactory;
+
+    /**
      * @param ScopeConfigInterface $scopeConfig
      * @param ErrorFactory $rateErrorFactory
      * @param LoggerInterface $logger
@@ -123,6 +129,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
      * @param CartRepositoryInterface $quoteRepository
      * @param DateTime $date
      * @param TimezoneInterface $timezone
+     * @param ProductCollectionFactory $productCollectionFactory
      * @param array $data
      */
     public function __construct(
@@ -148,6 +155,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         CartRepositoryInterface $quoteRepository,
         DateTime                $date,
         TimezoneInterface       $timezone,
+        ProductCollectionFactory $productCollectionFactory,
         array                   $data = []
     ) {
         $this->_rateResultFactory = $rateFactory;
@@ -159,6 +167,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         $this->_quoteRepository   = $quoteRepository;
         $this->_date              = $date;
         $this->timezone           = $timezone;
+        $this->_productCollectionFactory = $productCollectionFactory;
         parent::__construct(
             $scopeConfig,
             $rateErrorFactory,
@@ -248,6 +257,13 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         $totalVolume = 0;
 
         /**
+         * Resolve the volume attribute code once and batch-load its value for every
+         * product in the request to avoid an N+1 query inside the item loop.
+         */
+        $volumeCode = $this->_helper->getVolumeAttribute() ?: 'volume';
+        $volumeValues = $this->getVolumeValues($request->getAllItems(), $volumeCode);
+
+        /**
          * Items
          */
         foreach ($request->getAllItems() as $_item) {
@@ -261,8 +277,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 $_item = $_item->getParentItem();
             }
 
-            $volumeCode = $this->_helper->getVolumeAttribute() ? $this->_helper->getVolumeAttribute() : 'volume';
-            $volume = (int) $_product->getResource()->getAttributeRawValue($_product->getId(), $volumeCode, $_product->getStoreId()) * $_item->getQty();
+            $volume = ($volumeValues[(int) $_product->getId()] ?? 0) * $_item->getQty();
             $totalVolume += $volume;
             $totalPrice += $_product->getFinalPrice();
 
@@ -285,9 +300,10 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
         $totalWeight = $request->getPackageWeight();
 
         /**
-         * Maximum insured amount by Pedidos Ya
+         * Maximum insured amount by Pedidos Ya (0/empty means no limit → skip the check)
          */
-        if ($request->getPackageValue() > (int)$helper->getDefaultCountryAmount()) {
+        $maxInsuredAmount = (int)$helper->getDefaultCountryAmount();
+        if ($maxInsuredAmount > 0 && $request->getPackageValue() > $maxInsuredAmount) {
             $error = $this->_rateErrorFactory->create();
             $error->setCarrier($this->_code);
             $error->setCarrierTitle($this->getConfigData('title'));
@@ -326,13 +342,13 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             ];
 
             if ($debugMode) {
-                $helper->log(json_encode(["Waypoint Coverage Send Data: " => $waypointData]));
+                $helper->log($helper->redactForLog(["Waypoint Coverage Send Data" => $waypointData]));
             }
 
             $waypointCoverage = $this->_webservice->getEstimateCoverage($waypointData);
 
             if ($debugMode) {
-                $helper->log(json_encode(["Waypoint Coverage Get Data:" => $waypointCoverage]));
+                $helper->log($helper->redactForLog(["Waypoint Coverage Get Data" => $waypointCoverage]));
             }
 
             if (!$waypointCoverage) {
@@ -368,8 +384,17 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
 
             $closestSourceWaypoint = $this->_helper->getClosestSourceWaypoint($waypointCoverage);
 
+            if (!$closestSourceWaypoint) {
+                $error = $this->_rateErrorFactory->create();
+                $error->setCarrier($this->_code);
+                $error->setCarrierTitle($this->getConfigData('title'));
+                $error->setErrorMessage(__('There are no shipping estimate for the address entered'));
+                $result->append($error);
+                return $result;
+            }
+
             if ($debugMode) {
-                $helper->log(json_encode(["Closest Source Waypoint:" => $closestSourceWaypoint->getData()]));
+                $helper->log($helper->redactForLog(["Closest Source Waypoint" => $closestSourceWaypoint->getData()]));
             }
 
             $waypoints[] = [
@@ -403,7 +428,7 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 [
                     "referenceId"   => $referenceId,
                     "isTest"        => $this->_helper->getMode() == 'testing',
-                    "deliveryTime"  => $this->timezone->date()->format('Y-m-d\TH:i:s\Z'),
+                    "deliveryTime"  => $this->timezone->date()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z'),
                     "volume"        => $totalVolume,
                     "weight"        => $totalWeight,
                     "items"         => $itemsWspedidosYa,
@@ -411,13 +436,13 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
                 ];
 
             if ($debugMode) {
-                $helper->log(json_encode(["Estimate Data:" => $estimatePriceData]));
+                $helper->log($helper->redactForLog(["Estimate Data" => $estimatePriceData]));
             }
 
             $shippingPrice = $webservice->getEstimatePrice($estimatePriceData);
 
             if ($debugMode) {
-                $helper->log(json_encode(["Shipping Price" => $shippingPrice]));
+                $helper->log($helper->redactForLog(["Shipping Price" => $shippingPrice]));
             }
 
             /**
@@ -427,7 +452,9 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
             $method->setCost(0);
 
             if ($isFreeShipping) {
-                $result->append($method);
+                // Free shipping: keep price at 0; the method is appended once below
+                $method->setPrice(0);
+                $method->setCost(0);
             } elseif (isset($shippingPrice->price)) {
                 /**
                  * Get Price and Discount assume amount
@@ -510,5 +537,49 @@ class PedidosYa extends AbstractCarrierOnline implements CarrierInterface
     public function getTracking($trackings)
     {
         return $this->_helper->getTrackingUrl($trackings);
+    }
+
+    /**
+     * Batch-load the volume attribute value keyed by product id for all request items.
+     *
+     * @param array $items
+     * @param string $volumeCode
+     * @return array
+     */
+    private function getVolumeValues(array $items, $volumeCode)
+    {
+        $productIds = [];
+        $storeId = null;
+
+        foreach ($items as $_item) {
+            if ($_item->getProductType() == 'configurable') {
+                continue;
+            }
+            $product = $_item->getProduct();
+            if ($product && $product->getId()) {
+                $productIds[] = (int) $product->getId();
+                if ($storeId === null) {
+                    $storeId = $product->getStoreId();
+                }
+            }
+        }
+
+        if (!$productIds) {
+            return [];
+        }
+
+        $collection = $this->_productCollectionFactory->create();
+        if ($storeId !== null) {
+            $collection->setStore($storeId);
+        }
+        $collection->addAttributeToSelect($volumeCode)
+            ->addFieldToFilter('entity_id', ['in' => array_unique($productIds)]);
+
+        $values = [];
+        foreach ($collection as $product) {
+            $values[(int) $product->getId()] = (int) $product->getData($volumeCode);
+        }
+
+        return $values;
     }
 }

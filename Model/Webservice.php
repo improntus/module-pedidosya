@@ -77,6 +77,13 @@ class Webservice
                 $this->loginEcommerce($storeId);
                 break;
         }
+
+        /**
+         * Strip CR/LF/TAB from the token to avoid header injection / malformed Authorization header
+         */
+        if (is_string($this->_accessToken)) {
+            $this->_accessToken = str_replace(["\r", "\n", "\t"], '', trim($this->_accessToken));
+        }
     }
 
     /**
@@ -106,8 +113,18 @@ class Webservice
 
             /**
              * Prepare Data & Send Request
+             * Credentials are sent in the POST body, never in the URL query string.
              */
-            $WebserviceURL = $this->_helper->getWebServiceURL("token?client_id={$this->_clientId}&client_secret={$this->_clientSecret}&password={$this->_password}&username={$this->_username}&grant_type=password", true);
+            $WebserviceURL = $this->_helper->getWebServiceURL("token", true);
+            $postFields = http_build_query(
+                [
+                    'client_id'     => $this->_clientId,
+                    'client_secret' => $this->_clientSecret,
+                    'password'      => $this->_password,
+                    'username'      => $this->_username,
+                    'grant_type'    => 'password',
+                ]
+            );
             // phpcs:ignore Magento2.Functions.DiscouragedFunction
             curl_setopt_array(
                 $curl,
@@ -116,7 +133,8 @@ class Webservice
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_MAXREDIRS => 10,
                     CURLOPT_TIMEOUT => 30,
-                    CURLOPT_CUSTOMREQUEST => "POST",
+                    CURLOPT_POST => true,
+                    CURLOPT_POSTFIELDS => $postFields,
                 ]
             );
             // phpcs:ignore Magento2.Functions.DiscouragedFunction
@@ -154,12 +172,12 @@ class Webservice
      * @param $estimatePriceData
      * @return false|mixed
      */
-    public function getEstimatePrice($estimatePriceData)
+    public function getEstimatePrice($estimatePriceData, $storeId = null)
     {
         /**
          *  Get AccessToken
          */
-        $this->login();
+        $this->login($storeId);
 
         /**
          * Init Curl
@@ -237,12 +255,12 @@ class Webservice
     /**
      * @return false|mixed
      */
-    public function getCategories()
+    public function getCategories($storeId = null)
     {
         /**
          *  Get AccessToken
          */
-        $this->login();
+        $this->login($storeId);
 
         /**
          * Init Curl
@@ -406,7 +424,7 @@ class Webservice
             [
                 CURLOPT_URL => $url,
                 CURLOPT_POST => 1,
-                CURLOPT_POSTFIELDS => $confirmData,
+                CURLOPT_POSTFIELDS => json_encode($confirmData),
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT => 30,
                 CURLOPT_HTTPHEADER => [
@@ -456,12 +474,12 @@ class Webservice
      * @param $waypointData
      * @return false|mixed
      */
-    public function getEstimateCoverage($waypointData)
+    public function getEstimateCoverage($waypointData, $storeId = null)
     {
         /**
          *  Get AccessToken
          */
-        $this->login();
+        $this->login($storeId);
 
         /**
          * Init Curl
@@ -609,12 +627,12 @@ class Webservice
      * @param $id
      * @return false|mixed
      */
-    public function getShippingOrderDetails($id)
+    public function getShippingOrderDetails($id, $storeId = null)
     {
         /**
          *  Get AccessToken
          */
-        $this->login();
+        $this->login($storeId);
 
         /**
          * Init Curl

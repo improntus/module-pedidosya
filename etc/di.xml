@@ -32,4 +32,15 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Config\Model\Config\TypePool">
+        <arguments>
+            <argument name="sensitive" xsi:type="array">
+                <item name="shipping/pedidosya/api/token" xsi:type="string">1</item>
+                <item name="shipping/pedidosya/ecommerce/client_id" xsi:type="string">1</item>
+                <item name="shipping/pedidosya/ecommerce/client_secret" xsi:type="string">1</item>
+                <item name="shipping/pedidosya/ecommerce/username" xsi:type="string">1</item>
+                <item name="shipping/pedidosya/ecommerce/password" xsi:type="string">1</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

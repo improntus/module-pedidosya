@@ -59,6 +59,7 @@ class Info extends \Magento\Sales\Block\Order\Info
         array $data = []
     ) {
         $this->_pedidosYaFactory = $pedidosYaFactory;
+        $this->coreRegistry = $registry;
         parent::__construct($context,$registry, $paymentHelper, $addressRenderer, $data);
     }
 

@@ -21,6 +21,7 @@ use Improntus\PedidosYa\Model\TokenFactory;
 use Improntus\PedidosYa\Model\PedidosYaFactory;
 use Improntus\PedidosYa\Helper\Logger\Logger as PedidosYaLogger;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
 
 /**
  * Class Data
@@ -124,6 +125,11 @@ class Data extends AbstractHelper
     protected $httpClient;
 
     /**
+     * @var EncryptorInterface
+     */
+    protected $encryptor;
+
+    /**
      * @param Context $context
      * @param ScopeConfigInterface $scopeConfig
      * @param TokenFactory $tokenFactory
@@ -138,6 +144,7 @@ class Data extends AbstractHelper
      * @param TimezoneInterface $timezone
      * @param StoreManagerInterface $storeManager
      * @param ClientInterface $httpClient
+     * @param EncryptorInterface $encryptor
      */
     public function __construct(
         Context $context,
@@ -153,7 +160,8 @@ class Data extends AbstractHelper
         PedidosYaLogger $pedidosYaLogger,
         TimezoneInterface $timezone,
         StoreManagerInterface $storeManager,
-        ClientInterface $httpClient
+        ClientInterface $httpClient,
+        EncryptorInterface $encryptor
     ) {
         $this->_scopeConfig         = $scopeConfig;
         $this->_tokenFactory        = $tokenFactory;
@@ -168,6 +176,7 @@ class Data extends AbstractHelper
         $this->timezone             = $timezone;
         $this->storeManager         = $storeManager;
         $this->httpClient           = $httpClient;
+        $this->encryptor            = $encryptor;
         parent::__construct($context);
     }
 
@@ -203,10 +212,12 @@ class Data extends AbstractHelper
      */
     public function getClientId($storeId = null)
     {
-        return $this->_scopeConfig->getValue(
-            'shipping/pedidosya/ecommerce/client_id',
-            ScopeInterface::SCOPE_STORE,
-            $storeId ?: $this->getCurrentStoreId()
+        return $this->encryptor->decrypt(
+            (string) $this->_scopeConfig->getValue(
+                'shipping/pedidosya/ecommerce/client_id',
+                ScopeInterface::SCOPE_STORE,
+                $storeId ?: $this->getCurrentStoreId()
+            )
         );
     }
 
@@ -215,10 +226,12 @@ class Data extends AbstractHelper
      */
     public function getClientSecret($storeId = null)
     {
-        return $this->_scopeConfig->getValue(
-            'shipping/pedidosya/ecommerce/client_secret',
-            ScopeInterface::SCOPE_STORE,
-            $storeId ?: $this->getCurrentStoreId()
+        return $this->encryptor->decrypt(
+            (string) $this->_scopeConfig->getValue(
+                'shipping/pedidosya/ecommerce/client_secret',
+                ScopeInterface::SCOPE_STORE,
+                $storeId ?: $this->getCurrentStoreId()
+            )
         );
     }
 
@@ -227,10 +240,12 @@ class Data extends AbstractHelper
      */
     public function getUsername($storeId = null)
     {
-        return $this->_scopeConfig->getValue(
-            'shipping/pedidosya/ecommerce/username',
-            ScopeInterface::SCOPE_STORE,
-            $storeId ?: $this->getCurrentStoreId()
+        return $this->encryptor->decrypt(
+            (string) $this->_scopeConfig->getValue(
+                'shipping/pedidosya/ecommerce/username',
+                ScopeInterface::SCOPE_STORE,
+                $storeId ?: $this->getCurrentStoreId()
+            )
         );
     }
 
@@ -239,10 +254,12 @@ class Data extends AbstractHelper
      */
     public function getPassword($storeId = null)
     {
-        return $this->_scopeConfig->getValue(
-            'shipping/pedidosya/ecommerce/password',
-            ScopeInterface::SCOPE_STORE,
-            $storeId ?: $this->getCurrentStoreId()
+        return $this->encryptor->decrypt(
+            (string) $this->_scopeConfig->getValue(
+                'shipping/pedidosya/ecommerce/password',
+                ScopeInterface::SCOPE_STORE,
+                $storeId ?: $this->getCurrentStoreId()
+            )
         );
     }
 
@@ -251,10 +268,12 @@ class Data extends AbstractHelper
      */
     public function getApiToken($storeId = null)
     {
-        return $this->_scopeConfig->getValue(
-            'shipping/pedidosya/api/token',
-            ScopeInterface::SCOPE_STORE,
-            $storeId ?: $this->getCurrentStoreId()
+        return $this->encryptor->decrypt(
+            (string) $this->_scopeConfig->getValue(
+                'shipping/pedidosya/api/token',
+                ScopeInterface::SCOPE_STORE,
+                $storeId ?: $this->getCurrentStoreId()
+            )
         );
     }
 
@@ -385,7 +404,7 @@ class Data extends AbstractHelper
      */
     public function getFreeShipping($storeId = null)
     {
-        return $this->_scopeConfig->getValue(
+        return $this->_scopeConfig->isSetFlag(
             'carriers/pedidosya/free_shipping',
             ScopeInterface::SCOPE_STORE,
             $storeId ?:$this->getCurrentStoreId()
@@ -431,12 +450,14 @@ class Data extends AbstractHelper
     public function saveToken($token, $storeId = null)
     {
         $storeId = $storeId ?:$this->getCurrentStoreId();
+        // Strip CR/LF/TAB so a stored token can never inject headers when reused later
+        $token = str_replace(["\r", "\n", "\t"], '', trim((string) $token));
         $tokenFactory = $this->_tokenFactory->create()
                              ->getCollection()
                              ->addFieldToFilter('store_id', $storeId)
                              ->getFirstItem();
         $tokenFactory->setStoreId($storeId);
-        $tokenFactory->setToken($token);
+        $tokenFactory->setToken($this->encryptor->encrypt($token));
         $tokenFactory->setLatestUse($this->timezone->date()->format("Y-m-d H:i:s"));
         $tokenFactory->save();
     }
@@ -478,7 +499,7 @@ class Data extends AbstractHelper
         /**
          * set Access Token
          */
-        $accessToken = $token->getToken();
+        $accessToken = $this->encryptor->decrypt($token->getToken());
 
         /**
          * This Request is only to validate that the access token is valid
@@ -512,36 +533,49 @@ class Data extends AbstractHelper
         $WebServiceURL = $this->getWebServiceURL("categories");
 
         /**
-         * Set Headers
+         * Strip CR/LF/TAB from the token before building the Authorization header
          */
-        $this->httpClient->setHeaders(
-            [
-                "Authorization" => $token,
-                "Content-Type" => "application/json",
-                "Origin" => "Magento"
-            ]
-        );
+        $token = str_replace(["\r", "\n", "\t"], '', trim((string) $token));
 
-        /**
-         * Send Request
-         */
-        $this->httpClient->get($WebServiceURL);
+        try {
+            /**
+             * Set Headers
+             */
+            $this->httpClient->setHeaders(
+                [
+                    "Authorization" => $token,
+                    "Content-Type" => "application/json",
+                    "Origin" => "Magento"
+                ]
+            );
 
-        /**
-         * Get Status Code
-         */
-        $httpCode = $this->httpClient->getStatus();
+            /**
+             * Send Request
+             */
+            $this->httpClient->get($WebServiceURL);
 
-        /**
-         * Decode Request
-         */
-        $WebServiceResponse = json_decode($this->httpClient->getBody()) ?: "";
+            /**
+             * Get Status Code
+             */
+            $httpCode = $this->httpClient->getStatus();
+
+            /**
+             * Decode Request
+             */
+            $WebServiceResponse = json_decode($this->httpClient->getBody()) ?: "";
+        } catch (\Exception $e) {
+            $this->log('Error validating access token: ' . $e->getMessage());
+            return false;
+        }
 
         /**
          * Compare HTTP Code
          */
         if ($httpCode !== 200) {
-            $message = isset($WebServiceResponse->messages) ? $WebServiceResponse->messages[0] : "Unknown";
+            $message = isset($WebServiceResponse->messages[0]) ? $WebServiceResponse->messages[0] : "Unknown";
+            if (!is_string($message)) {
+                $message = (string) json_encode($message);
+            }
             $this->log("Error: {$message} - Invalid Access Token REFRESH");
             return false;
         }
@@ -657,6 +691,7 @@ class Data extends AbstractHelper
      */
     public function getTrackingUrl($tracking)
     {
+        $infoConfirmed = null;
         $track = $this->_trackFactory->create()
             ->getCollection()
             ->addFieldToFilter('track_number', $tracking);
@@ -669,9 +704,7 @@ class Data extends AbstractHelper
             $infoConfirmed = json_decode($pedidosYa->getInfoConfirmed());
         }
 
-        if (!is_array($tracking)) {
-            $trackings = [$tracking];
-        }
+        $trackings = is_array($tracking) ? $tracking : [$tracking];
         $result = $this->_trackResultFactory->create();
 
         foreach ($trackings as $tracking) {
@@ -680,7 +713,7 @@ class Data extends AbstractHelper
             $status->setCarrierTitle($this->getTitle());
             $status->setTracking($tracking);
             $status->setPopup(1);
-            $status->setUrl($infoConfirmed->shareLocationUrl);
+            $status->setUrl($infoConfirmed->shareLocationUrl ?? '');
 
             $result->append($status);
         }
@@ -703,10 +736,18 @@ class Data extends AbstractHelper
         $days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
         $waypoint = $this->getWaypointById($waypointId);
         $day = $days[date("w", strtotime($this->timezone->date()->format("Y-m-d\TH:i:s\Z")))];
-        $openHour = $waypoint->getData('working_hours_'. $day. '_open');
-        $closeHour = $waypoint->getData('working_hours_'. $day. '_close');
+        $openHour = (int) $waypoint->getData('working_hours_'. $day. '_open');
+        $closeHour = (int) $waypoint->getData('working_hours_'. $day. '_close');
+
+        /**
+         * A 9999 bound (on either open or close) marks the waypoint as CLOSED for that day
+         */
+        if ($openHour === 9999 || $closeHour === 9999) {
+            return false;
+        }
+
         $deliveryTime = new \DateTime($deliveryTime);
-        $deliveryHour = $deliveryTime->format("H");
+        $deliveryHour = (int) $deliveryTime->format("H");
 
         /**
          * Check Waypoint Availability
@@ -718,11 +759,50 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $message
+     * @param mixed $message
      */
     public function log($message)
     {
+        if (!is_string($message)) {
+            $message = (string) json_encode($message);
+        }
         $this->_pedidosYaLogger->error($message);
+    }
+
+    /**
+     * Redact customer PII from an arbitrary payload and return a JSON string safe for logging.
+     *
+     * @param mixed $data
+     * @return string
+     */
+    public function redactForLog($data): string
+    {
+        $normalized = json_decode(json_encode($data), true);
+        if (!is_array($normalized)) {
+            return is_string($data) ? $data : (string) json_encode($data);
+        }
+        return (string) json_encode($this->redactArray($normalized));
+    }
+
+    /**
+     * @param array $data
+     * @return array
+     */
+    private function redactArray(array $data)
+    {
+        $sensitiveKeys = [
+            'name', 'phone', 'telephone', 'address', 'addressstreet',
+            'addressadditional', 'notificationmail', 'email',
+            'sharelocationurl', 'latitude', 'longitude'
+        ];
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = $this->redactArray($value);
+            } elseif (in_array(strtolower((string) $key), $sensitiveKeys, true)) {
+                $data[$key] = '***';
+            }
+        }
+        return $data;
     }
 
     /**

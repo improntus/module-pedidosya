@@ -75,7 +75,7 @@ class Edit extends Action
         $this->_coreRegistry->register('row_data', $rowData);
 
         $resultPage = $this->_resultPageFactory->create();
-        $title = $rowId ? Edit . php__('Edit Waypoint ') . $rowTitle : __('Create Waypoint');
+        $title = $rowId ? __('Edit Waypoint %1', $rowTitle) : __('Create Waypoint');
 
         $resultPage->getConfig()->getTitle()->prepend($title);
         return $resultPage;

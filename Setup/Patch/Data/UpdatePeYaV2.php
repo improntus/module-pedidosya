@@ -37,15 +37,18 @@ class UpdatePeYaV2 implements DataPatchInterface
      * @param ModuleDataSetupInterface $moduleDataSetup
      * @param WriterInterface $writer
      * @param ScopeConfigInterface $scopeConfig
+     * @param EncryptorInterface $encryptor
      */
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,
         WriterInterface $writer,
-        ScopeConfigInterface $scopeConfig
+        ScopeConfigInterface $scopeConfig,
+        EncryptorInterface $encryptor
     ) {
         $this->moduleDataSetup = $moduleDataSetup;
         $this->writer = $writer;
         $this->scopeConfig = $scopeConfig;
+        $this->encryptor = $encryptor;
     }
 
     public static function getDependencies()
@@ -62,59 +65,48 @@ class UpdatePeYaV2 implements DataPatchInterface
     {
         $this->moduleDataSetup->startSetup();
 
-        /**
-         * Get Old data
-         */
-        $clientId = $this->scopeConfig->getValue('shipping/pedidosya/client_id');
-        $clientSecret = $this->scopeConfig->getValue('shipping/pedidosya/client_secret');
-        $username = $this->scopeConfig->getValue('shipping/pedidosya/username');
-        $password = $this->scopeConfig->getValue('shipping/pedidosya/password');
+        $connection = $this->moduleDataSetup->getConnection();
+        $configTable = $this->moduleDataSetup->getTable('core_config_data');
 
         /**
-         * Migrate Data
+         * Map legacy plaintext credential paths to their new (encrypted) e-commerce paths.
          */
-        // ClientId
-        if (!is_null($clientId)) {
-            $this->writer->save(
-                'shipping/pedidosya/ecommerce/client_id',
-                $clientId
-            );
+        $legacyMap = [
+            'shipping/pedidosya/client_id'     => 'shipping/pedidosya/ecommerce/client_id',
+            'shipping/pedidosya/client_secret' => 'shipping/pedidosya/ecommerce/client_secret',
+            'shipping/pedidosya/username'      => 'shipping/pedidosya/ecommerce/username',
+            'shipping/pedidosya/password'      => 'shipping/pedidosya/ecommerce/password',
+        ];
+
+        foreach ($legacyMap as $oldPath => $newPath) {
+            /**
+             * Migrate across ALL scopes (default / websites / stores) so per-scope
+             * credentials are preserved, encrypting each value on write.
+             */
+            $select = $connection->select()
+                ->from($configTable, ['scope', 'scope_id', 'value'])
+                ->where('path = ?', $oldPath);
+
+            foreach ($connection->fetchAll($select) as $row) {
+                if ($row['value'] === null || $row['value'] === '') {
+                    continue;
+                }
+                $this->writer->save(
+                    $newPath,
+                    $this->encryptor->encrypt($row['value']),
+                    $row['scope'],
+                    (int) $row['scope_id']
+                );
+            }
+
+            /**
+             * Remove the legacy path across every scope.
+             */
+            $connection->delete($configTable, ['path = ?' => $oldPath]);
         }
 
-        // ClientSecret
-        if (!is_null($clientSecret)) {
-            $this->writer->save(
-                'shipping/pedidosya/ecommerce/client_secret',
-                $clientSecret
-            );
-        }
-
-        // Username
-        if (!is_null($username)) {
-            $this->writer->save(
-                'shipping/pedidosya/ecommerce/username',
-                $username
-            );
-        }
-
-        // Password
-        if (!is_null($password)) {
-            $this->writer->save(
-                'shipping/pedidosya/ecommerce/password',
-                $password
-            );
-        }
-
-        // Set integration Mode E-commerce (Legacy)
+        // Set integration Mode E-commerce (Legacy) at default scope
         $this->writer->save('shipping/pedidosya/integration_mode', 'eco');
-
-        /**
-         * Remove Old Data
-         */
-        $this->writer->delete('shipping/pedidosya/client_id');
-        $this->writer->delete('shipping/pedidosya/client_secret');
-        $this->writer->delete('shipping/pedidosya/username');
-        $this->writer->delete('shipping/pedidosya/password');
 
         $this->moduleDataSetup->endSetup();
     }

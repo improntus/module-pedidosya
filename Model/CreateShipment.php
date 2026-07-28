@@ -66,6 +66,13 @@ class CreateShipment
      */
     protected $timezone;
 
+    /**
+     * In-flight guard to prevent observer re-entry (sales_order_save_after) recursion
+     *
+     * @var bool
+     */
+    protected $inProgress = false;
+
     public function __construct(
         Context $context,
         PedidosYaFactory $pedidosYaFactory,
@@ -89,23 +96,37 @@ class CreateShipment
     /**
      * @param $orderId
      * @param null $order
+     * @param bool $forceRetry Bypass the terminal pedidosya_error guard (manual admin dispatch only)
      * @throws LocalizedException
      */
-    public function create($orderId, $order = null)
+    public function create($orderId, $order = null, $forceRetry = false)
     {
+        if ($this->inProgress) {
+            return;
+        }
+
         if ($this->_pedidosYaHelper->isActive()) {
+            $this->inProgress = true;
+            try {
             if ($orderId) {
                 try {
                     $order = $this->_orderRepository->get($orderId);
                 } catch (\Exception $e) {
-                    $this->_messageManager->addErrorMessage(CreateShipment . php__('An error occurred trying to generate the shipment PedidosYa: ') . $e->getMessage());
+                    $this->_messageManager->addErrorMessage(__('An error occurred trying to generate the shipment PedidosYa: ') . $e->getMessage());
                     $this->_pedidosYaHelper->log($e->getMessage());
                 }
             }
 
             if ($order->getShippingMethod() == 'pedidosya_pedidosya' && $order instanceof AbstractModel) {
                 $statuses = $this->_pedidosYaHelper->getStatusOrderAllowed();
-                $notAllowedPedidosYaStatus = ['pedidosya_sent', 'pedidosya_error'];
+                /**
+                 * 'pedidosya_sent' is always terminal (success). 'pedidosya_error' blocks the
+                 * automatic flow to avoid retry loops, but a manual admin dispatch may force a retry.
+                 */
+                $notAllowedPedidosYaStatus = ['pedidosya_sent'];
+                if (!$forceRetry) {
+                    $notAllowedPedidosYaStatus[] = 'pedidosya_error';
+                }
                 $orderStatus = $order->getStatus();
 
                 $pedidosYa = $this->_pedidosYaFactory->create();
@@ -116,7 +137,7 @@ class CreateShipment
                 $alreadySent = $pedidosYa->getStatus() == 'pedidosya_sent';
 
                 if (in_array($orderStatus, $statuses) && !$alreadySent || $pedidosYa->getStatus() == 'pedidosya_cancelled') {
-                    if (!in_array($pedidosYa->getPedidosyaStatus(), $notAllowedPedidosYaStatus) || $pedidosYa->getPedidosyaStatus() == 'pedidosya_cancelled') {
+                    if (!in_array($pedidosYa->getStatus(), $notAllowedPedidosYaStatus) || $pedidosYa->getStatus() == 'pedidosya_cancelled') {
                         $pedidosYa->setOrderId($order->getId());
                         $pedidosYa->setIncrementId($order->getIncrementId());
 
@@ -142,7 +163,7 @@ class CreateShipment
 
                             $data->waypoints[0]->phone = preg_replace("/[^0-9]/", "", $data->waypoints[0]->phone);
                             $data->waypoints[1]->phone = preg_replace("/[^0-9]/", "", $order->getShippingAddress()->getTelephone());
-                            $data->waypoints[1]->name = $order->getShippingAddress()->getFirstname() . " CreateShipment.php" .$order->getShippingAddress()->getLastname();
+                            $data->waypoints[1]->name = $order->getShippingAddress()->getFirstname() . ' ' . $order->getShippingAddress()->getLastname();
                             $data->notificationMail =  $order->getShippingAddress()->getEmail();
                             $data->referenceId = '#' . $order->getIncrementId();
 
@@ -194,8 +215,14 @@ class CreateShipment
                                         $errorMessage = $createShippingResult->message ?? $createShippingResult->code;
                                         // Set Comment
                                         $statusCommentHistory = __('PedidosYa Confirmation ERROR: %1', $errorMessage);
-                                        // Log error
-                                        $this->_pedidosYaHelper->log($createShippingResult);
+                                        // Persist terminal error status BEFORE saving the order to prevent re-dispatch
+                                        $pedidosYa->setStatus('pedidosya_error');
+                                        $pedidosYa->save();
+                                        // Log concise error; full (redacted) payload only in debug
+                                        $this->_pedidosYaHelper->log('PedidosYa Confirmation ERROR: ' . $errorMessage);
+                                        if ($this->_pedidosYaHelper->getDebugMode($order->getStoreId())) {
+                                            $this->_pedidosYaHelper->log($this->_pedidosYaHelper->redactForLog($createShippingResult));
+                                        }
                                     }
 
                                     // Save Order
@@ -203,8 +230,15 @@ class CreateShipment
                                     $order->save();
                                     return $returnStatus;
                                 } else {
-                                    $this->_pedidosYaHelper->log(json_encode($createShippingResult));
                                     $errorMessage = $createShippingResult->message ?? $createShippingResult->code;
+                                    // Persist terminal error status BEFORE saving the order to prevent re-dispatch
+                                    $pedidosYa->setStatus('pedidosya_error');
+                                    $pedidosYa->save();
+                                    // Log concise error; full (redacted) payload only in debug
+                                    $this->_pedidosYaHelper->log('PedidosYa Pre Order ERROR: ' . $errorMessage);
+                                    if ($this->_pedidosYaHelper->getDebugMode($order->getStoreId())) {
+                                        $this->_pedidosYaHelper->log($this->_pedidosYaHelper->redactForLog($createShippingResult));
+                                    }
                                     $order->addStatusHistoryComment("PedidosYa Pre Order ERROR: $errorMessage");
                                     $order->save();
                                     return $errorMessage;
@@ -219,6 +253,9 @@ class CreateShipment
                 } elseif (!$alreadySent) {
                     return $this->_pedidosYaHelper::PEDIDOSYA_ERROR_STATUS;
                 }
+            }
+            } finally {
+                $this->inProgress = false;
             }
         }
     }
