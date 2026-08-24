@@ -38,8 +38,8 @@ class Waypoint extends AbstractModel
     public function __construct(
         Context $context,
         Registry $registry,
-        ?AbstractResource $resource,
-        ?AbstractDb $resourceCollection,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
